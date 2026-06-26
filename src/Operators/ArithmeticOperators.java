@@ -25,7 +25,17 @@ public class ArithmeticOperators {
 
         System.out.println(z++);
         z--;
-        System.out.println(z);
+        System.out.println(z--);
+
+        int c=201;
+        System.out.println(++c);
+        System.out.println(--c);
+        System.out.println(c++);
+        System.out.println(c);
+
+        int num=5;
+        num+=+5;
+        System.out.println(num);
 
     }
 }
