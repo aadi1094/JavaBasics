@@ -21,6 +21,9 @@ public class Main {
         System.out.println("Enter Chemistry Marks");
         obj.ChemistryMarks=input.nextInt();
 
+        System.out.println("----*Marksheet*----");
+        obj.displayAll();
+
 
         int totalmarks=obj.calculateTotal(obj.mathsMarks, obj.ChemistryMarks, obj.EnglishMarks, obj.historyMarks,obj.scienceMarks);
         System.out.println("Total Marks obtained :"+totalmarks);
@@ -30,7 +33,7 @@ public class Main {
     }
 }
 
-class Marks{
+class Marks extends Department{
     int mathsMarks;
     int scienceMarks;
     int historyMarks;
