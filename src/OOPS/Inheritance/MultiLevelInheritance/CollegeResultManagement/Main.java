@@ -1,6 +1,8 @@
 package OOPS.Inheritance.MultiLevelInheritance.CollegeResultManagement;
 
 
+import OOPS.Inheritance.MultiLevelInheritance.UniversityDepartmentStudent.Department;
+
 import java.util.Scanner;
 
 public class Main {
@@ -19,6 +21,7 @@ public class Main {
         System.out.println("Enter Chemistry Marks");
         obj.ChemistryMarks=input.nextInt();
 
+
         int totalmarks=obj.calculateTotal(obj.mathsMarks, obj.ChemistryMarks, obj.EnglishMarks, obj.historyMarks,obj.scienceMarks);
         System.out.println("Total Marks obtained :"+totalmarks);
         double percentage=obj.calculatePercentage(totalmarks, obj.outOffMarks);
@@ -27,7 +30,7 @@ public class Main {
     }
 }
 
-class Marks {
+class Marks{
     int mathsMarks;
     int scienceMarks;
     int historyMarks;
