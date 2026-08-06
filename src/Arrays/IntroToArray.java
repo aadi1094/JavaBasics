@@ -1,5 +1,7 @@
 package Arrays;
 
+import java.util.Arrays;
+
 public class IntroToArray {
     public static void main(String[] args) {
         int rollno1=21;
@@ -31,6 +33,22 @@ public class IntroToArray {
 
         String[] str= new String[3];
         System.out.println(str[0]);
+
+        int[] test = new int[5];
+
+        test[0]=10;
+        test[1]=20;
+        test[0]=30;
+
+        System.out.println(Arrays.toString(test));
+
+
+        int[] arr1={10,20,30,40,50,60,70,80,90};
+
+        for (int i = arr1.length-1; i >=0 ; i--) {
+            System.out.println(arr1[i]);
+        }
+
     }
 
 }
