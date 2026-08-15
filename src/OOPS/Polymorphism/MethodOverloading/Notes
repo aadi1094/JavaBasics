@@ -1,0 +1,33 @@
+
+Rules for Implementing Method Overloading in Java :
+
+1. The method name must be the same. In other words, all overloaded methods must share the identical name.
+2.Parameters must be different. Each overloaded method must have a unique list of parameters. You can achieve this using any of three ways:
+Data type of parameters
+Number of parameters
+Sequence (i.e. order) of data type of parameters
+3.The return type of the method does not affect overloading. If two methods have the same name and different return types,
+ they cannot be overloaded if their parameter list is identical.
+4.Access modifiers do not affect method overloading. You can overload methods even if they have different access modifiers.
+5.Exception thrown can be anything. A method can throw any exception (checked or unchecked). It doesn’t affect overloading.
+6.The implementation does not matter in the case of method overloading. A method can have any kind of logic.
+
+
+Key Features of Method Overloading in Java
+There are several important features of method overloading in Java that you should have to keep in mind.
+
+1. The call to overloaded method is bonded at compile-time. The compiler decides which overloaded method to call based
+   on the reference type at compile time, not runtime object type.
+2. The concept of method overloading is also known as compile-time polymorphism in Java because the method binding
+    happens during compilation.
+3. Method overloading is generally done in the same class. But you can also do it in the subclass. You need to make
+    a relationship between the parent class and child class by using extends keyword for it.
+4. Method overloading cannot be done by changing only the return type of the method because there may occur ambiguity
+    and Java will throw a compile-time error. However, overloaded methods can have different return types if their
+    parameter list is also different.
+5. You can overload the private methods in Java.
+6. The final methods can be overloaded in Java.
+7. The main method can also be overloaded in Java.
+8. You can overload both static and instance methods in Java. Method overloading is possible when two or more
+    static methods with the same name, but the difference in the list of parameters.
+

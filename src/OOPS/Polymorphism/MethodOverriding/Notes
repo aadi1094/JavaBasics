@@ -1,0 +1,35 @@
+Features of Method Overriding:
+
+Method overriding is one of the most powerful features of object-oriented programming in Java. It allows a subclass to
+    provide a specific implementation of a method that is already defined in its superclass. It enables us to customize
+    the behavior of a method in the subclass while maintaining the same method signature as the method in the superclass.
+
+There are the following key features of the method overriding in Java. They are as follows:
+
+1.Method overriding technique supports the runtime polymorphism. This allows method calls to be resolved at runtime,
+    enabling dynamic method dispatch.
+2.It allows a subclass to provide its own implementation of the method which is already provided by the superclass.
+3.Only the instance method (i.e. non-static) can be overridden in Java.
+4.An instance variable can never be overridden in Java.
+5.The overriding method can not be more restrictive access modifiers than the overridden method of the superclass.
+    For example, a public method in the superclass cannot be overridden as protected or private.
+6.Overriding concept is not applicable for private, final, static, and main method in Java.
+7.From Java 5 onwards, the return type of the overriding method can be a subclass of the return type declared in the superclass.
+    This is known as a covariant return type.
+8.The overriding method cannot throw any checked exception.
+
+
+Rules for Method Overriding in Java
+When you are overriding superclass method in a subclass, you need to follow certain rules. They are as follows.
+
+1. The name of subclass method must have exactly the same name as the superclass method name.
+2. The parameter list (types or order) of the subclass method must be the same as the superclass method parameters.
+    In overriding, method name and argument types must be matched. If the method name is the same but the parameters differ,
+    it’s method overloading, not overriding.
+3. Must be Is-A relationship (Inheritance). Overriding is only possible through inheritance. The subclass must inherit the method from the superclass.
+4. Subclass method’s return type must be the same as the superclass method return type. But this rule is applicable until the Java 1.4 version only.
+    From the Java 1.5 version onwards, covariant return types are also allowed.
+5. Subclass method’s access modifier must be the same or more permissive than the superclass method access modifier.
+    In other words, the overriding method cannot be more restrictive than the overridden method. It can be the same or less restrictive.
+    Look at the below figure to understand better.
+
