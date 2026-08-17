@@ -1,0 +1,29 @@
+Characteristics of Java Constructor
+There are the following characteristics or features of constructor in Java. They are as follows:
+
+1. Constructor’s name must be exactly the same as the class name in which it is defined. It must end with a pair of simple braces.
+
+2. The constructor should not have any return type even void also because if there is a return type, JVM would consider as a method,
+not a constructor. Compiler and JVM differentiate constructor and method definitions on the basis of the return type.
+
+3. Java constructor may or may not contain parameters. Parameters are local variables to receive value (data) from outside into a constructor.
+
+4. A constructor is automatically called and executed by JVM at the time of object creation. JVM (Java Virtual Machine)
+first allocates the memory for variables (objects) and then executes the constructor to initialize instance variables.
+
+5. It is always called and executed only once per object. This means that when an object of a class is created, constructor is called.
+When we create second object, the constructor is again called during the second time.
+
+6. Whenever we create an object/instance of a class, the constructor automatically calls by the JVM .
+If we don’t define any constructor inside the class, Java compiler automatically creates a default constructor at
+compile-time and assigns default values for all variables declared in the class.
+
+The default values for variables are:
+
+a. Numeric variables are set to 0.
+b. Strings are set to null.
+c. Boolean variables are set to false.
+
+7. In Java, constructors also provide thread safety, meaning no thread can access the object until the execution of constructor is completed.
+
+8. We can do anything in the constructor similar to a method. Using constructors, we can perform all initialization activities of an object.

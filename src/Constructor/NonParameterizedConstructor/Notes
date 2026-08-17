@@ -1,0 +1,6 @@
+A constructor which has no parameters in the parentheses but contains statements inside its body is called non-parametrized constructor.
+We also call it as a non-argument constructor in Java.
+
+A non-parameterized constructor has the same signature as that of default constructor, except for only one difference between them.
+Using non-parameterized constructor, we can initialize any values for the instance variables.
+

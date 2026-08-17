@@ -1,0 +1,20 @@
+A constructor that has no parameter is known as default constructor in Java. When a class does not declare a constructor,
+Java compiler automatically adds a constructor for that class.
+
+In other words, the compiler adds a default constructor only when we do not define any constructor explicitly.
+The constructor added by compiler is called default constructor. Look at the example in the below figure to understand better.
+
+Features of Default Constructor
+There are the following features of a default constructor in Java. They are as:
+
+(1) When Java compiler adds a default constructor, it also adds a statement called super() to call the superclass constructor.
+
+(2) Default constructor does not accept any argument value and has no statements in its body except super() statement.
+Sometimes, the call to superclass constructor within the default constructor may cause a compile-time error.
+
+(3) A default constructor automatically initializes instance variables with default values. For example, string is initialized by null value.
+
+(4) It has no throws clause.
+
+(5) The access modifiers of the default constructor should be the same as the access modifier of the class.
+For example, if the top-level class is declared public, the default constructor should implicitly be declared as public.
