@@ -14,3 +14,5 @@ public class CalculateAverageOfArrayElements {
         System.out.println("Average is "+avg_array);
     }
 }
+
+//Average is 3.0
