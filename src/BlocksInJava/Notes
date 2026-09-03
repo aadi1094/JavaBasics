@@ -1,0 +1,39 @@
+Instance Block in Java | Types, Example
+
+A block in Java is a set of code enclosed within curly braces { } within any class, method, or constructor.
+A block begins with an opening brace ({) and ends with a closing brace (}).
+
+Types of Blocks in Java:
+Local block
+Instance initialization block (Non-static initialization block)
+Static initialization block
+
+Local Block in Java:
+A block defined inside a method, constructor, or another block is called a local block or inner block in Java.
+This type of block executes whenever the flow of control reaches that block during the execution of the enclosing
+method, constructor, or block.
+
+Instance Initialization Block (Non-Static Block) in Java:
+An instance initialization block (IIB) in Java is a block of code that is executed whenever an object of a class is created.
+This block is also known as a non-static initialization block in Java.
+
+Important Note:
+1.An instance initialization block executes before the constructor body only when an instance of the class is created.
+2.If a class contains both static initialization blocks and instance initialization blocks, the static initialization blocks
+execute once when the class is loaded in the memory, whereas the instance initialization blocks execute every time an object is created.
+3.We can access both instance variables and static variables inside an instance initialization block.
+
+ Static Initialization Block in Java:
+ When a block is declared with the static keyword, it is called static block in Java. It is a normal block of code
+ enclosed in braces ({ }) and preceded by a keyword “static”.
+
+ A static block is also known as a static initialization block or static initializer block in Java.
+ It gets executed only once by JVM when the class is loaded into the memory by Java ClassLoader.
+ This happens before any object of the class is created and before any static methods are accessed.
+
+Q .Why Static Initialization Block is Executed Before main() Method?
+==>1. JVM loads the corresponding .class file (bytecode) of the class into memory using ClassLoader.
+   2. During the dot class file loading into memory, the JVM executes all static initialization blocks (also called static blocks)
+   in the order they appear in the class.
+   3. After loading the dot class file and executing the static block, JVM calls the main method to start the program execution.
+   Therefore, static block is executed before the main method.
