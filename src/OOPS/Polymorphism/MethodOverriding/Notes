@@ -1,35 +1,435 @@
-Features of Method Overriding:
+===============================================================================
+METHOD OVERRIDING IN JAVA
+package OOPS.Polymorphism.MethodOverriding
+===============================================================================
 
-Method overriding is one of the most powerful features of object-oriented programming in Java. It allows a subclass to
-    provide a specific implementation of a method that is already defined in its superclass. It enables us to customize
-    the behavior of a method in the subclass while maintaining the same method signature as the method in the superclass.
+Read OOPS/Polymorphism/Notes first, then MethodOverloading/Notes, then this.
 
-There are the following key features of the method overriding in Java. They are as follows:
-
-1.Method overriding technique supports the runtime polymorphism. This allows method calls to be resolved at runtime,
-    enabling dynamic method dispatch.
-2.It allows a subclass to provide its own implementation of the method which is already provided by the superclass.
-3.Only the instance method (i.e. non-static) can be overridden in Java.
-4.An instance variable can never be overridden in Java.
-5.The overriding method can not be more restrictive access modifiers than the overridden method of the superclass.
-    For example, a public method in the superclass cannot be overridden as protected or private.
-6.Overriding concept is not applicable for private, final, static, and main method in Java.
-7.From Java 5 onwards, the return type of the overriding method can be a subclass of the return type declared in the superclass.
-    This is known as a covariant return type.
-8.The overriding method cannot throw any checked exception.
+    CONTENTS
+        PART 1  : What it is
+        PART 2  : The rules  (all must be true)
+        PART 3  : The features  (what it gives you)
+        PART 4  : @Override -- always write it
+        PART 5  : super -- calling the parent version
+        PART 6  : Upcasting and dynamic dispatch  (heart of the topic)
+        PART 7  : The three "never shrink" rules, and the one reason behind them
+        PART 8  : What looks like overriding but is not
+        PART 9  : Overloading vs overriding -- side by side
+        PART 10 : Checklist -- is this a valid override?
+        PART 11 : Traps and interview questions
+        PART 12 : Practice list -- what to code after reading this
 
 
-Rules for Method Overriding in Java
-When you are overriding superclass method in a subclass, you need to follow certain rules. They are as follows.
+===============================================================================
+PART 1 : WHAT IT IS
+===============================================================================
 
-1. The name of subclass method must have exactly the same name as the superclass method name.
-2. The parameter list (types or order) of the subclass method must be the same as the superclass method parameters.
-    In overriding, method name and argument types must be matched. If the method name is the same but the parameters differ,
-    it’s method overloading, not overriding.
-3. Must be Is-A relationship (Inheritance). Overriding is only possible through inheritance. The subclass must inherit the method from the superclass.
-4. Subclass method’s return type must be the same as the superclass method return type. But this rule is applicable until the Java 1.4 version only.
-    From the Java 1.5 version onwards, covariant return types are also allowed.
-5. Subclass method’s access modifier must be the same or more permissive than the superclass method access modifier.
-    In other words, the overriding method cannot be more restrictive than the overridden method. It can be the same or less restrictive.
-    Look at the below figure to understand better.
+A child class replaces a method it inherited from its parent, keeping the
+SAME name and the SAME parameters, but writing its own body.
 
+    class Animal {
+        void sound() { System.out.println("Some sound"); }
+    }
+
+    class Dog extends Animal {
+        @Override
+        void sound() { System.out.println("Bark"); }   // same name, same params
+    }
+
+WHY IT EXISTS
+
+Overloading is for the CALLER's convenience -- one name, many input shapes.
+Overriding is for EXTENSIBILITY -- it lets a child change what a method does
+without the calling code being rewritten.
+
+        void makeItSpeak(Animal a) {    // written once, never touched again
+            a.sound();                  // works for Dog, Cat, Cow, and any
+        }                               // animal you add next year
+
+That method was compiled before Dog existed, yet it calls Dog's version.
+That is the whole point.
+
+
+===============================================================================
+PART 2 : THE RULES  (all seven must be true)
+===============================================================================
+
+    1. Same method name.
+
+    2. Same parameter list -- same types, same count, same ORDER.
+       If the parameters differ it is OVERLOADING, not overriding.
+
+    3. Inheritance must exist -- extends a class, or implements an interface.
+       No IS-A relationship, no overriding.
+
+    4. Return type must be the same, or a SUBCLASS of it (covariant).
+
+    5. Access must be the same or WIDER. Never narrower.
+
+    6. Checked exceptions must be the same, NARROWER, or none.
+       Never new, never broader. Unchecked exceptions are unrestricted.
+
+    7. The parent method must not be private, static or final.
+
+Rules 4, 5 and 6 all come from one single idea -- see PART 7.
+
+
+===============================================================================
+PART 3 : THE FEATURES  (what it gives you, and how it behaves)
+===============================================================================
+
+    1. It is RUNTIME polymorphism. The JVM chooses the version, not the
+       compiler. Also called dynamic dispatch or late binding.
+
+    2. The OBJECT decides which version runs -- not the reference type.
+
+    3. Only INSTANCE methods can be overridden.
+
+    4. Variables are NEVER overridden. They are only hidden. Fields are
+       resolved from the reference type at compile time.
+
+    5. The parent version is still reachable from the child via super.method().
+
+    6. It always needs at least TWO classes. Overloading needs only one.
+
+    7. An abstract method MUST be overridden by the first concrete subclass.
+       That is the only case where overriding is compulsory.
+
+
+===============================================================================
+PART 4 : @Override -- ALWAYS WRITE IT
+===============================================================================
+
+    class Child extends Parent {
+        @Override
+        void display() { ... }
+    }
+
+It tells the compiler: "I intend this to override a parent method." If the
+signature is wrong -- a typo, a wrong parameter type, wrong capitalisation --
+compilation fails immediately, instead of silently creating a brand new method
+that nobody ever calls.
+
+    class Parent { void display() { } }
+
+    class Child extends Parent {
+
+        void dispaly() { }      // typo. Compiles fine. NOT an override.
+                                // You debug for an hour wondering why
+                                // nothing happens.
+
+        @Override
+        void dispaly() { }      // same typo -> COMPILE ERROR in one second
+    }
+
+The JVM does not need it. Treat it as mandatory for yourself. Put it on every
+overridden method, including the ones in ShapesExample.java and MyTest.java
+that currently do not have it.
+
+
+===============================================================================
+PART 5 : super -- CALLING THE PARENT VERSION
+===============================================================================
+
+    class Parent {
+        void show() { System.out.println("Parent show"); }
+    }
+
+    class Child extends Parent {
+        @Override
+        void show() {
+            super.show();                       // run the parent version first
+            System.out.println("Child show");   // then add extra behaviour
+        }
+    }
+
+    super.method()   calls the immediate parent's version of that method
+    super.variable   reads the parent's hidden field
+    super(...)       calls the parent CONSTRUCTOR, must be the FIRST statement
+
+    super cannot be used inside a static method -- there is no object there.
+    super.super.method() is ILLEGAL. You can only reach up one level.
+
+This is how you EXTEND behaviour instead of REPLACING it: do what the parent
+did, then add more.
+
+
+===============================================================================
+PART 6 : UPCASTING AND DYNAMIC DISPATCH   (the heart of the topic)
+===============================================================================
+
+    Parent p = new Child();     // upcasting: parent reference, child object
+    p.show();                   // the CHILD version runs
+
+Two separate things are decided at two separate times:
+
+    REFERENCE TYPE (Parent)   -- fixed at COMPILE time
+        Controls WHICH METHODS YOU ARE ALLOWED TO CALL.
+        p.childOnlyMethod();    // COMPILE ERROR -- not visible on Parent
+
+    OBJECT TYPE (Child)       -- discovered at RUNTIME
+        Controls WHICH VERSION ACTUALLY RUNS.
+        p.show();               // Child's version runs
+
+Memorise it as one line:
+
+        The REFERENCE decides WHAT you can call.
+        The OBJECT decides WHICH ONE runs.
+
+The JVM performs this lookup through a virtual method table (vtable) at
+runtime. That is why it is called dynamic dispatch, or late binding.
+
+THE THREE CONDITIONS -- all must be present, miss one and you do not have it:
+
+        1. Inheritance        (an IS-A relationship exists)
+        2. Method overriding  (the child overrides the parent's method)
+        3. Upcasting          (a parent reference holds a child object)
+
+Your own MyTest.java demonstrates it:
+
+        A a1 = new B();
+        a1.m1();    // "A-m1"  -> B never overrode m1, so A's version runs
+        a1.m2();    // "B-m2"  -> B overrode m2, so B's version runs
+        a1.m3();    // COMPILE ERROR -> m3 is not declared in A at all
+
+Add that third line and read the error. It is the cleanest way to feel the
+difference between the reference type and the object type.
+
+
+===============================================================================
+PART 7 : THE THREE "NEVER SHRINK" RULES, AND THE ONE REASON BEHIND THEM
+===============================================================================
+
+Rules 4, 5 and 6 look like three things to memorise. They are one thing.
+
+    THE PRINCIPLE
+        An override is a PROMISE that the child can be used ANYWHERE the
+        parent is expected. So the child may widen what it accepts and
+        narrow what it demands -- but it may never break code that was
+        written against the parent.
+
+Whenever you are unsure, ask: "would this surprise somebody holding a Parent
+reference?" If yes, Java forbids it.
+
+
+  a) ACCESS -- same or WIDER
+
+        private  <  default  <  protected  <  public
+
+     Stay at the same level or move RIGHT. Moving left is a compile error.
+
+        Parent declares:  protected void show()
+
+        Child: public    void show()    // OK    -- moved right
+        Child: protected void show()    // OK    -- same
+        Child:           void show()    // ERROR -- moved left to default
+        Child: private   void show()    // ERROR -- moved left
+
+     Why: a Parent reference could otherwise call a method the object
+     refuses to expose.
+
+
+  b) CHECKED EXCEPTIONS -- same, NARROWER, or none
+
+     Unchecked (RuntimeException, Error and subclasses): no restriction.
+     Checked: same, or a subclass, or nothing. Never new, never broader.
+
+        class Parent {
+            void read() throws IOException { }
+        }
+        class Child extends Parent {
+            void read()                              { }  // OK    throws none
+            void read() throws IOException           { }  // OK    same
+            void read() throws FileNotFoundException { }  // OK    subclass
+            void read() throws Exception             { }  // ERROR broader
+            void read() throws SQLException          { }  // ERROR new checked
+            void read() throws RuntimeException      { }  // OK    unchecked
+        }
+
+     Why: the caller only wrote catch (IOException e). A SQLException would
+     sail straight past that catch block.
+
+
+  c) RETURN TYPE -- same or a SUBCLASS  (covariant, Java 5 onwards)
+
+        class Animal {
+            Animal reproduce() { return new Animal(); }
+        }
+        class Dog extends Animal {
+            @Override
+            Dog reproduce() { return new Dog(); }    // Dog IS-A Animal -> OK
+        }
+
+     The caller benefits by avoiding a cast:
+
+            Dog puppy = new Dog().reproduce();       // no (Dog) cast needed
+
+     Works for REFERENCE types only. Primitives must match EXACTLY -- an
+     int return cannot become a long.
+
+     Why: the caller expected an Animal. A Dog IS an Animal, so nothing
+     breaks. Returning a broader type would break them.
+
+
+===============================================================================
+PART 8 : WHAT LOOKS LIKE OVERRIDING BUT IS NOT
+===============================================================================
+
+  a) STATIC METHODS  ->  this is METHOD HIDING
+
+        class Parent { static void show() { System.out.println("Parent"); } }
+        class Child extends Parent {
+                       static void show() { System.out.println("Child");  } }
+
+        Parent p = new Child();
+        p.show();          // prints "Parent"
+
+     Static methods belong to the CLASS, not to an object, so there is no
+     dynamic dispatch. Resolved from the REFERENCE type at compile time.
+     You cannot put @Override on a static method that hides another.
+
+     Also: a child cannot turn an instance method into a static one, or a
+     static one into an instance method. Both are compile errors.
+
+
+  b) INSTANCE VARIABLES  ->  this is FIELD HIDING
+
+        class Parent { String name = "Parent"; }
+        class Child extends Parent { String name = "Child"; }
+
+        Parent p = new Child();
+        System.out.println(p.name);             // prints "Parent"
+        System.out.println(((Child) p).name);   // prints "Child"
+
+     VARIABLES ARE NEVER POLYMORPHIC IN JAVA. Only instance methods are.
+     A favourite interview trick question.
+
+
+  c) PRIVATE METHODS  ->  not inherited at all, so never overridden.
+     The same signature in the child is just a new, unrelated method that
+     happens to share a name.
+
+
+  d) FINAL METHODS  ->  cannot be overridden. That is exactly what final is
+     for: locking behaviour so no subclass can change it.
+
+
+  e) CONSTRUCTORS  ->  never inherited, so never overridden. They can only
+     be OVERLOADED and CHAINED (see the Constructor package).
+
+
+  f) The main method  ->  it is static, so rule (a) applies. It can be
+     overloaded, but never overridden.
+
+
+===============================================================================
+PART 9 : OVERLOADING vs OVERRIDING -- SIDE BY SIDE
+===============================================================================
+
+                          OVERLOADING              OVERRIDING
+    --------------------  -----------------------  -----------------------
+    Polymorphism type     Compile-time / static    Runtime / dynamic
+    Who decides           The compiler             The JVM
+    Decided when          Compile time             Run time
+    Method name           Same                     Same
+    Parameter list        MUST differ              MUST be identical
+    Return type           Ignored by the compiler  Same or covariant
+    Access modifier       Anything                 Same or wider
+    Exceptions            Anything                 Same or narrower
+    Inheritance needed    No                       Yes -- mandatory
+    Number of classes     Usually one              Always two or more
+    Static methods        Can be overloaded        Cannot -- that is hiding
+    Private methods       Can be overloaded        Cannot -- not inherited
+    Final methods         Can be overloaded        Cannot
+    Purpose               Caller convenience       Extensibility
+
+One line each:
+
+    OVERLOADING = same name, DIFFERENT parameters, SAME class, compiler decides.
+    OVERRIDING  = same name, SAME parameters, PARENT and CHILD, JVM decides.
+
+
+===============================================================================
+PART 10 : CHECKLIST -- IS THIS A VALID OVERRIDE?
+===============================================================================
+
+    [ ] Same method name
+    [ ] Same parameter list: type, count AND order
+            (if the parameters differ it is OVERLOADING, not overriding)
+    [ ] IS-A relationship exists (extends a class or implements an interface)
+    [ ] Return type is the same OR a subclass (covariant)
+    [ ] Access modifier is the same or WIDER
+    [ ] No new or broader CHECKED exception
+    [ ] Parent method is not private, not static, not final
+    [ ] It is an instance method
+    [ ] @Override annotation is written on it
+
+
+===============================================================================
+PART 11 : TRAPS AND INTERVIEW QUESTIONS
+===============================================================================
+
+  1. Parent p = new Child();  which show() runs?
+        The CHILD's. The object decides.
+
+  2. Same line -- can you call a method that exists only in Child?
+        No. Compile error. The reference decides what is visible.
+
+  3. Both classes have a field called name. What does p.name print?
+        The PARENT's. Fields are not polymorphic.
+
+  4. Both show() methods are static. Which runs?
+        The PARENT's. That is hiding, not overriding.
+
+  5. Can you override a private method?
+        No. It is not inherited, so there is nothing to override.
+
+  6. Can you override main()?
+        No. It is static. You can only overload it.
+
+  7. Can the child throw a broader checked exception?
+        No. Same, narrower, or none.
+
+  8. Can the child make a public method protected?
+        No. Same or wider only.
+
+  9. Can the return type change?
+        Only to a subclass, and only for reference types.
+
+ 10. Why does @Override matter if the JVM ignores it?
+        It turns a silent runtime bug into an instant compile error.
+
+ 11. Changed the parameter list while trying to override -- what happened?
+        You silently created an OVERLOAD. Your method never gets called.
+        @Override would have caught it.
+
+
+===============================================================================
+PART 12 : PRACTICE LIST -- WHAT TO CODE AFTER READING THIS
+===============================================================================
+
+  1. Add @Override to every overridden method in ShapesExample.java and
+     MyTest.java. Nothing should break -- that is the point.
+
+  2. Deliberately misspell one overridden method name WITH @Override present,
+     read the compiler error, then fix it.
+
+  3. In ShapesExample, make area() actually calculate using fields
+     (radius, side, length/breadth) instead of printing a formula string.
+
+  4. Build a Shape[] array holding a Circle, a Square and a Rectangle, then
+     loop over it calling area(). That single loop IS runtime polymorphism.
+
+  5. Write a child override that calls super.show() first, then adds its own
+     line, so you can see behaviour EXTENDED rather than replaced.
+
+  6. Prove field hiding: give Parent and Child a field with the same name,
+     print it through a Parent reference, then through a cast.
+
+  7. Prove method hiding: make both show() methods static and watch the
+     output flip back to the parent version.
+
+  8. Try to override a final method and read the error message.
+
+  9. Try to narrow access -- make a public parent method protected in the
+     child -- and read that error too.

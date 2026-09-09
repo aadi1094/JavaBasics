@@ -1,0 +1,207 @@
+===============================================================================
+POLYMORPHISM IN JAVA -- MASTER NOTES
+package OOPS.Polymorphism
+===============================================================================
+
+Read this file FIRST, then MethodOverloading/Notes, then MethodOverriding/Notes.
+
+
+-------------------------------------------------------------------------------
+1. MEANING
+-------------------------------------------------------------------------------
+
+    poly     = many
+    morphism = forms / ways to represent
+    (both are Greek words)
+
+Polymorphism = ONE NAME, MANY FORMS.
+
+The same method name behaves differently depending on either the arguments
+passed to it (decided at compile time) or the actual object it is called on
+(decided at runtime).
+
+Real life analogy -- the verb "cut":
+
+        cut(paper)  -> use scissors
+        cut(tree)   -> use an axe
+        cut(hair)   -> use a trimmer
+
+Same verb. The behaviour is chosen by what you are cutting.
+
+
+-------------------------------------------------------------------------------
+2. WHY IT EXISTS  (the real reason, not the textbook reason)
+-------------------------------------------------------------------------------
+
+It lets you write code against a GENERAL type today and have that same code
+work with SPECIFIC types you have not written yet.
+
+        void printArea(Shape s) {      // written once, never touched again
+            s.area();                   // works for Circle, Square, Rectangle
+        }                               // and any Shape you add next year
+
+Without polymorphism you would need a long if-else chain that must be edited
+every time a new shape appears:
+
+        if (s instanceof Circle)         { ... }
+        else if (s instanceof Square)    { ... }
+        else if (s instanceof Rectangle) { ... }   // and edit forever
+
+Polymorphism deletes that chain. This is the "O" in the SOLID principles --
+Open for extension, Closed for modification. Every framework you will ever
+use (Spring, Collections, JDBC) is built on this one idea.
+
+
+-------------------------------------------------------------------------------
+3. THE TWO TYPES -- SIDE BY SIDE
+-------------------------------------------------------------------------------
+
+                        COMPILE-TIME                 RUNTIME
+                        POLYMORPHISM                 POLYMORPHISM
+  --------------------  ---------------------------  --------------------------
+  Also called           Static / Early binding       Dynamic / Late binding
+  Achieved by           Method OVERLOADING           Method OVERRIDING
+  Who decides           The compiler                 The JVM
+  Decided using         Reference & argument types   The real object in memory
+  When decided          At compile time              At runtime
+  Needs inheritance     No                           Yes -- IS-A is mandatory
+  Method name           Same                         Same
+  Parameter list        MUST be different            MUST be identical
+  Return type           Ignored by the compiler      Same or covariant
+  Number of classes     Usually one                  Always two or more
+  Works on static       Yes                          No -- that is method HIDING
+  Works on private      Yes                          No -- not inherited
+  Works on final        Yes                          No -- final blocks it
+  Performance           Slightly faster              Slight vtable lookup cost
+  Detail notes file     MethodOverloading/Notes      MethodOverriding/Notes
+
+One-line summary to memorise:
+
+    OVERLOADING = same name, DIFFERENT parameters, SAME class, compiler decides.
+    OVERRIDING  = same name, SAME parameters, PARENT and CHILD, JVM decides.
+
+
+-------------------------------------------------------------------------------
+4. UPCASTING -- THE LINE THAT MAKES RUNTIME POLYMORPHISM POSSIBLE
+-------------------------------------------------------------------------------
+
+        Shape s = new Circle();      // parent reference  <--  child object
+
+This is UPCASTING. Java does it automatically with no cast needed, because
+Circle IS-A Shape.
+
+        The REFERENCE decides WHAT you can call   (checked at compile time)
+        The OBJECT decides WHICH ONE runs         (chosen at runtime)
+
+Your own ShapesExample.java already shows both halves:
+
+        Circle circle = new Circle();
+        circle.area();            // Circle version -- an ordinary call
+
+        ShapesExample shape1 = new Circle();
+        shape1.area();            // Circle version -- RUNTIME POLYMORPHISM
+                                  // the reference is a ShapesExample but the
+                                  // object is a Circle, so Circle.area() runs
+
+DOWNCASTING is the reverse and must be written explicitly, and guarded:
+
+        Shape s = new Circle();
+        if (s instanceof Circle) {
+            Circle c = (Circle) s;      // safe
+        }
+
+Downcasting without the instanceof check risks a ClassCastException at runtime.
+
+
+-------------------------------------------------------------------------------
+5. THE THREE CONDITIONS FOR RUNTIME POLYMORPHISM
+-------------------------------------------------------------------------------
+
+All three must be true. Miss any one and you do not have it:
+
+        1. INHERITANCE        -- an IS-A relationship must exist
+        2. METHOD OVERRIDING  -- the child must override the parent's method
+        3. UPCASTING          -- a parent reference must hold a child object
+
+
+-------------------------------------------------------------------------------
+6. WHERE POLYMORPHISM SITS AMONG THE FOUR PILLARS OF OOP
+-------------------------------------------------------------------------------
+
+        1. Encapsulation -- hide the data, expose behaviour (private + getters)
+        2. Inheritance   -- reuse behaviour through IS-A       [you have done this]
+        3. Polymorphism  -- one name, many forms               [you are here]
+        4. Abstraction   -- expose what, hide how (abstract class / interface)
+
+Polymorphism DEPENDS on inheritance, and abstraction is what makes polymorphism
+genuinely useful in real code. So after this topic, go straight to abstract
+classes and interfaces -- that is where these two ideas join up.
+
+
+-------------------------------------------------------------------------------
+7. TERMS THAT ALL MEAN THE SAME THING
+-------------------------------------------------------------------------------
+
+Interviewers switch between these freely. They are synonyms:
+
+    overloading = compile-time polymorphism = static polymorphism
+                = static binding = early binding
+
+    overriding  = runtime polymorphism = dynamic polymorphism
+                = dynamic binding = late binding = dynamic method dispatch
+
+
+-------------------------------------------------------------------------------
+8. THE FIVE MOST COMMON MISTAKES
+-------------------------------------------------------------------------------
+
+    1. Thinking variables are polymorphic. They are NOT. Only instance methods
+       are. Fields are resolved from the reference type at compile time.
+
+    2. Thinking static methods can be overridden. They cannot -- that is
+       method HIDING and it resolves from the reference type.
+
+    3. Changing the parameter list while trying to override. That silently
+       becomes an OVERLOAD instead, and your method never gets called.
+       @Override catches this instantly.
+
+    4. Forgetting that the reference type limits which methods are visible.
+       Parent p = new Child(); p.childOnlyMethod(); is a compile error.
+
+    5. Assuming a wider return type is allowed. Only NARROWER (covariant)
+       return types are legal when overriding.
+
+
+-------------------------------------------------------------------------------
+9. READING ORDER AND FILES IN THIS PACKAGE
+-------------------------------------------------------------------------------
+
+    Notes                          <- you are reading this (overview)
+    IntroToPolymorphism.java       <- the definition and the two types
+    ShapesExample.java             <- runtime polymorphism in action
+
+    MethodOverloading/Notes        <- rules, resolution order, traps
+    MethodOverloading/Sum.java     <- four overloads of sum()
+    MethodOverloading/Test.java    <- overloading across parent and child
+
+    MethodOverriding/Notes         <- rules, @Override, super, dispatch, traps
+    MethodOverriding/MyTest.java   <- A / B classes proving dynamic dispatch
+
+
+-------------------------------------------------------------------------------
+10. HOW TO TEST YOURSELF BEFORE WE START CODING
+-------------------------------------------------------------------------------
+
+Answer these out loud without looking. If you can, you have understood it.
+
+    1. Can you overload a method without inheritance? Can you override one?
+    2. Parent p = new Child();  Which class's method runs, and why?
+    3. Same line. Can you call a method that only exists in Child? Why not?
+    4. Both classes have a field called name. Which one does p.name print?
+    5. Both show() methods are static. Which one runs, and what is it called?
+    6. Parent throws IOException. Can the child throw Exception? SQLException?
+       FileNotFoundException? Nothing at all?
+    7. Parent method is protected. Can the child make it private? public?
+    8. Why does @Override matter if the JVM does not need it?
+    9. Name the three conditions required for runtime polymorphism.
+   10. Which is decided by the compiler and which by the JVM?

@@ -1,33 +1,501 @@
+===============================================================================
+METHOD OVERLOADING IN JAVA
+package OOPS.Polymorphism.MethodOverloading
+===============================================================================
 
-Rules for Implementing Method Overloading in Java :
+Read OOPS/Polymorphism/Notes first, then this, then MethodOverriding/Notes.
 
-1. The method name must be the same. In other words, all overloaded methods must share the identical name.
-2.Parameters must be different. Each overloaded method must have a unique list of parameters. You can achieve this using any of three ways:
-Data type of parameters
-Number of parameters
-Sequence (i.e. order) of data type of parameters
-3.The return type of the method does not affect overloading. If two methods have the same name and different return types,
- they cannot be overloaded if their parameter list is identical.
-4.Access modifiers do not affect method overloading. You can overload methods even if they have different access modifiers.
-5.Exception thrown can be anything. A method can throw any exception (checked or unchecked). It doesn’t affect overloading.
-6.The implementation does not matter in the case of method overloading. A method can have any kind of logic.
+    CONTENTS
+        PART 1  : What it is, and why it exists
+        PART 2  : The rules  (what makes a legal overload)
+        PART 3  : The features  (how it behaves)
+        PART 4  : The three ways to differ  (type, number, sequence)
+        PART 5  : How the compiler picks  (resolution order)
+        PART 6  : The delegation pattern -- overloading as default values
+        PART 7  : Reading your own code
+        PART 8  : What does NOT count as overloading
+        PART 9  : Varargs overloading
+        PART 10 : Overloading vs overriding -- side by side
+        PART 11 : Checklist -- is this a valid overload?
+        PART 12 : Traps and interview questions
+        PART 13 : Practice list -- what to code after reading this
 
 
-Key Features of Method Overloading in Java
-There are several important features of method overloading in Java that you should have to keep in mind.
+===============================================================================
+PART 1 : WHAT IT IS, AND WHY IT EXISTS
+===============================================================================
 
-1. The call to overloaded method is bonded at compile-time. The compiler decides which overloaded method to call based
-   on the reference type at compile time, not runtime object type.
-2. The concept of method overloading is also known as compile-time polymorphism in Java because the method binding
-    happens during compilation.
-3. Method overloading is generally done in the same class. But you can also do it in the subclass. You need to make
-    a relationship between the parent class and child class by using extends keyword for it.
-4. Method overloading cannot be done by changing only the return type of the method because there may occur ambiguity
-    and Java will throw a compile-time error. However, overloaded methods can have different return types if their
-    parameter list is also different.
-5. You can overload the private methods in Java.
-6. The final methods can be overloaded in Java.
-7. The main method can also be overloaded in Java.
-8. You can overload both static and instance methods in Java. Method overloading is possible when two or more
-    static methods with the same name, but the difference in the list of parameters.
+Two or more methods in the same class share ONE name but take DIFFERENT
+parameters.
 
+    void sum(int a, int b)            { }
+    void sum(double a, int b)         { }
+    void sum(int a, int b, int c)     { }
+
+WHY IT EXISTS
+
+One logical operation should have ONE name, whatever you hand it. Without
+overloading, every different input type would force a different method name:
+
+        sumTwoInts(2, 4);
+        sumIntAndDouble(2.4, 1);
+        sumThreeInts(1, 2, 3);        // caller must memorise 3 names
+
+    with overloading ->
+
+        sum(2, 4);
+        sum(2.4, 1);
+        sum(1, 2, 3);                 // caller remembers ONE name
+
+Four concrete reasons:
+
+    1. READABILITY -- the name describes the INTENT, not the argument types.
+
+    2. DEFAULT VALUES -- Java has no optional parameters. Overloading is how
+       Java fakes them. See PART 6.
+
+    3. API EVOLUTION -- adding an overload never breaks existing callers.
+       That is how Java itself has grown for 30 years without breaking old
+       programs.
+
+    4. TYPE FLEXIBILITY -- the caller passes what it already has, instead of
+       converting or casting first.
+
+THE PROOF YOU HAVE ALREADY BEEN USING
+
+    System.out.println() has TEN overloads:
+
+        println(int)     println(long)    println(float)   println(double)
+        println(boolean) println(char)    println(char[])  println(String)
+        println(Object)  println()
+
+    That is why it works on anything without you ever thinking about it.
+    Other examples: Math.max (4), String.valueOf (9),
+    StringBuilder.append (13), Arrays.sort (20+).
+
+WHEN NOT TO OVERLOAD
+
+Only overload when the methods do the SAME logical thing. Same name for
+unrelated behaviour is confusing, not clever:
+
+        void process(int userId)       // looks up a user
+        void process(int retryCount)   // retries a network call   <- BAD IDEA
+
+Two different operations deserve two different names.
+
+    Overloading = for the CALLER's convenience.
+    Overriding  = for EXTENSIBILITY.       (see MethodOverriding/Notes)
+
+
+===============================================================================
+PART 2 : THE RULES  (what makes a legal overload)
+===============================================================================
+
+    1. The method name must be the SAME.
+
+    2. The parameter list MUST differ -- by type, by count, or by order.
+       At least one of the three. This is the only thing that matters.
+
+    3. Everything else is IGNORED by the compiler:
+            return type, access modifier, thrown exceptions, method body,
+            static or non-static, final or non-final, parameter names.
+       None of them can create an overload on their own.
+
+    4. Same class is normal, but a subclass works too. Inheritance is
+       ALLOWED but not REQUIRED.
+
+Short version:
+
+        Same name + different parameter list = overload.
+        Same name + same parameter list      = compile error.
+
+
+===============================================================================
+PART 3 : THE FEATURES  (how it behaves)
+===============================================================================
+
+    1. It is COMPILE-TIME polymorphism. The compiler decides which method
+       to call. Also called static binding or early binding.
+
+    2. The decision uses the DECLARED types of the arguments. The runtime
+       object plays no part at all.
+
+    3. It works WITHOUT inheritance. One class is enough.
+
+    4. private, static, final and main can all be overloaded. (None of them
+       can be overridden -- that is the difference.)
+
+    5. CONSTRUCTORS can be overloaded, with exactly the same rules. You
+       already did this in the Constructor package.
+
+    6. Return types MAY differ -- but only if the parameter lists already
+       differ. A different return type alone is never enough.
+
+
+===============================================================================
+PART 4 : THE THREE WAYS TO DIFFER
+===============================================================================
+
+The parameter list can differ in exactly three ways. Any one is enough.
+
+  a) TYPE of the parameters
+
+        void show(int a)
+        void show(String a)
+        void show(double a)
+
+  b) NUMBER of the parameters
+
+        void show(int a)
+        void show(int a, int b)
+        void show(int a, int b, int c)
+        void show()                       // zero parameters is also a list
+
+  c) SEQUENCE (order) of the parameter types
+
+        void show(int a, String b)
+        void show(String a, int b)        // same types, opposite order
+
+     This one is legal but the rarest in real code. Usually it exists as a
+     convenience door into the same method -- it should just reorder the
+     arguments and delegate. See PART 6.
+
+     NOTE: order only counts when the TYPES differ. These are the same
+     signature and will not compile together:
+
+        void show(int a, int b)
+        void show(int b, int a)           // ERROR -- names do not matter
+
+
+===============================================================================
+PART 5 : HOW THE COMPILER PICKS  (resolution order)
+===============================================================================
+
+The compiler searches in this exact order and STOPS at the first phase that
+finds a match:
+
+    Phase 1 : Exact match           (no conversion needed at all)
+    Phase 2 : Widening / promotion  (int -> long -> float -> double)
+    Phase 3 : Autoboxing / unboxing (int -> Integer, Integer -> int)
+    Phase 4 : Varargs               (int...)
+
+Consequence: WIDENING always beats AUTOBOXING, and both beat VARARGS.
+
+    void show(long a)     { }   // widening
+    void show(Integer a)  { }   // autoboxing
+    void show(int... a)   { }   // varargs
+
+    show(10);   // calls show(long) -- widening wins
+
+THE WIDENING (PROMOTION) PATH
+
+    byte -> short -> int -> long -> float -> double
+            char  -> int -> long -> float -> double
+
+  * Java promotes automatically but NEVER narrows automatically.
+    A double will not silently become an int.
+  * char promotes to int, but char and short do not promote into each other
+    (both are 16 bits, one signed and one unsigned).
+  * boolean never participates in promotion.
+
+AMBIGUITY IS A COMPILE ERROR
+
+If two candidates are equally good, the compiler refuses to guess:
+
+    void sum(double a, int b)  { }
+    void sum(int a, double b)  { }
+
+    sum(2, 4);      // error: reference to sum is ambiguous
+                    // promoting either argument works equally well
+
+Add an exact match -- sum(int, int) -- and Phase 1 resolves it instantly.
+
+
+===============================================================================
+PART 6 : THE DELEGATION PATTERN -- OVERLOADING AS DEFAULT VALUES
+===============================================================================
+
+This is the part that matters in real code. Learn it properly.
+
+Java has NO default or optional parameters. Other languages write
+
+        def order(size, quantity=1, cheese=False)      # Python
+
+Java cannot. Instead, Java writes one short overload per default, and each
+one fills in a missing value and passes the call along.
+
+THE RULE
+
+        ONE overload holds the formula. Every other overload supplies one
+        missing value and delegates to the next one down.
+
+DIRECTION -- information flows from LESS to MORE. Never upward.
+
+        order()              --supplies "Medium"-->  order(size)
+        order(size)          --supplies 1--------->  order(size, qty)
+        order(qty, size)     --reorders----------->  order(size, qty)
+        order(size, qty)     --supplies false----->  order(size, qty, cheese)
+                                                                          *
+                                                     * the formula lives here
+
+Think of a form with three blanks. Each overload fills in one blank and hands
+the form on. The last one, holding a complete form, finally does the work.
+
+IN CODE
+
+        double order() {
+            return order("Medium");             // fills in the size
+        }
+        double order(String size) {
+            return order(size, 1);              // fills in the quantity
+        }
+        double order(int quantity, String size) {
+            return order(size, quantity);       // only reorders
+        }
+        double order(String size, int quantity) {
+            return order(size, quantity, false);  // fills in the cheese flag
+        }
+        double order(String size, int quantity, boolean cheese) {
+            ... the ONLY method that calculates anything ...
+        }
+
+WHY IT MATTERS
+
+    * Change the price and you edit ONE line, not five.
+    * The logic cannot drift out of sync between overloads.
+    * Four of the five methods are one line and cannot contain a bug.
+
+THE MISTAKE TO AVOID -- delegating the wrong way
+
+        order(size, qty, cheese)  --calls-->  order()   just to fetch 250
+
+    Here the method with the MOST information asks the method with the LEAST
+    information for a number. That is not delegation -- it is a constant with
+    a method wrapped around it. If the default size ever changes, the value
+    is silently wrong.
+
+    Ask yourself: does each overload ADD information before passing it on?
+    If an overload is reaching DOWNWARD for a value, the chain is backwards.
+
+SAME IDEA, DIFFERENT NAME
+
+    Constructors do this too, using this(...) instead of the method name.
+    That is constructor chaining -- see the Constructor package. Identical
+    concept, identical direction rule.
+
+
+===============================================================================
+PART 7 : READING YOUR OWN CODE
+===============================================================================
+
+Sum.java -- every call is an EXACT match, so Phase 1 always wins:
+
+    void sum(int a, int b)         -> s.sum(2, 4)
+    void sum(double a, int b)      -> s.sum(2.4, 1)
+    void sum(int a, double b)      -> s.sum(7, 3.5)
+    void sum(int a, int b, int c)  -> s.sum(1, 2, 3)      (different count)
+
+  Trap: delete sum(int, int), then still call s.sum(2, 4). The compiler can
+  promote either the first argument or the second, neither candidate is more
+  specific, and you get "reference to sum is ambiguous" at COMPILE time.
+
+
+Test.java -- overloading across a parent and a child class:
+
+    class SuperClass            { void msg(int x, int y)       }
+    class Subclass extends ...  { void msg(double x, double y) }
+
+    sc.msg(10, 20);   -> "Hello Java"                       (SuperClass method)
+    sc.msg(2.5, 3);   -> "Welcome you in Java programming"  (Subclass method)
+
+  Why does the first call run the PARENT method even though sc is a Subclass?
+  Overload resolution considers every method visible on the reference type,
+  inherited ones included. msg(10, 20) is an exact match for msg(int, int),
+  so Phase 1 wins immediately.
+
+  This proves overloading is decided by the COMPILER from declared types --
+  the runtime object plays no part.
+
+
+ShippingCharge.java -- all three ways to differ, plus delegation:
+
+    calculate(double)                          number
+    calculate(double, String)                  number
+    calculate(String, double)                  sequence
+    calculate(double, String, String)          number    <- holds the formula
+    calculate(double, int)                     type
+
+PizzaOrder.java -- the same shape, with a zero-arg overload and a boolean:
+
+    order()                                    zero parameters
+    order(String)                              number
+    order(int, String)                         sequence
+    order(String, int)                         number
+    order(String, int, boolean)                type      <- holds the formula
+
+
+===============================================================================
+PART 8 : WHAT DOES *NOT* COUNT AS OVERLOADING
+===============================================================================
+
+Each of these is a compile-time error ("method is already defined"):
+
+  1. Changing only the RETURN TYPE
+         int    add(int a, int b)
+         double add(int a, int b)                  // ERROR
+
+  2. Changing only the parameter NAMES
+         void show(int a)
+         void show(int b)                          // ERROR
+
+  3. Changing only the ACCESS MODIFIER
+         public  void show(int a)
+         private void show(int a)                  // ERROR
+
+  4. Changing only STATIC / NON-STATIC
+         static void show(int a)
+         void        show(int a)                   // ERROR
+
+  5. Changing only the THROWN EXCEPTIONS
+         void show(int a) throws IOException
+         void show(int a) throws SQLException      // ERROR
+
+  6. Changing only FINAL / NON-FINAL on a parameter
+         void show(int a)
+         void show(final int a)                    // ERROR
+
+The parameter LIST -- its types, its count, or the order of its types -- is
+the only thing that creates an overload. Everything else is ignored.
+
+
+===============================================================================
+PART 9 : VARARGS OVERLOADING
+===============================================================================
+
+    void print(int a)     { }
+    void print(int... a)  { }
+
+    print(5);       // calls print(int)    -- fixed arity always beats varargs
+    print(5, 6);    // calls print(int...)
+    print();        // calls print(int...) with a zero-length array
+
+  * The varargs parameter must be the LAST parameter in the list.
+  * A method can have only ONE varargs parameter.
+  * Inside the method, the varargs parameter is simply an array.
+  * f(int...) and f(long...) together are ambiguous for the call f().
+
+
+===============================================================================
+PART 10 : OVERLOADING vs OVERRIDING -- SIDE BY SIDE
+===============================================================================
+
+                          OVERLOADING              OVERRIDING
+    --------------------  -----------------------  -----------------------
+    Polymorphism type     Compile-time / static    Runtime / dynamic
+    Who decides           The compiler             The JVM
+    Decided when          Compile time             Run time
+    Method name           Same                     Same
+    Parameter list        MUST differ              MUST be identical
+    Return type           Ignored by the compiler  Same or covariant
+    Access modifier       Anything                 Same or wider
+    Exceptions            Anything                 Same or narrower
+    Inheritance needed    No                       Yes -- mandatory
+    Number of classes     Usually one              Always two or more
+    Static methods        Can be overloaded        Cannot -- that is hiding
+    Private methods       Can be overloaded        Cannot -- not inherited
+    Final methods         Can be overloaded        Cannot
+    Purpose               Caller convenience       Extensibility
+
+One line each:
+
+    OVERLOADING = same name, DIFFERENT parameters, SAME class, compiler decides.
+    OVERRIDING  = same name, SAME parameters, PARENT and CHILD, JVM decides.
+
+
+===============================================================================
+PART 11 : CHECKLIST -- IS THIS A VALID OVERLOAD?
+===============================================================================
+
+    [ ] Same method name
+    [ ] Parameter list differs by TYPE, COUNT, or ORDER of types
+            (if the parameter list is identical it will NOT compile)
+    [ ] Not relying on the return type alone to tell them apart
+    [ ] Not relying on the access modifier alone
+    [ ] Not relying on static / non-static alone
+    [ ] Not relying on the thrown exceptions alone
+    [ ] No two candidates equally good for any call you actually make
+            (otherwise: "reference to X is ambiguous")
+    [ ] Only ONE overload contains real logic; the rest delegate to it
+    [ ] Each delegating overload ADDS information before passing it down
+
+
+===============================================================================
+PART 12 : TRAPS AND INTERVIEW QUESTIONS
+===============================================================================
+
+  1. Passing null -- the MOST SPECIFIC type wins
+
+         void show(String s)  { }
+         void show(Object o)  { }
+         show(null);          // calls show(String) -- String IS-A Object,
+                              // so String is more specific
+
+         void show(String s)         { }
+         void show(StringBuilder s)  { }
+         show(null);          // COMPILE ERROR -- unrelated types, neither
+                              // one is more specific
+
+  2. int vs Integer vs long
+
+         void f(long x)     { }
+         void f(Integer x)  { }
+         f(10);             // calls f(long) -- Phase 2 beats Phase 3
+
+  3. Can you overload main()?
+         Yes. But the JVM only ever launches
+         public static void main(String[] args). Any other main is an
+         ordinary method you must call yourself.
+
+  4. Can you overload a private / static / final method?
+         Yes to all three. None of them can be OVERRIDDEN, which is a
+         favourite way to test whether you have mixed up the two topics.
+
+  5. Does overloading need inheritance?
+         No. Overriding cannot work without it.
+
+  6. Is constructor overloading the same thing?
+         Yes -- identical rules. Combine it with this(...) for chaining.
+
+  7. Why can't the return type alone distinguish two methods?
+         Because a caller may ignore the return value entirely:
+         obj.show();  -- the compiler would have no way to choose.
+
+  8. All these terms mean the SAME thing, and interviewers switch freely:
+         method overloading = compile-time polymorphism = static polymorphism
+                            = static binding = early binding
+
+
+===============================================================================
+PART 13 : PRACTICE LIST -- WHAT TO CODE AFTER READING THIS
+===============================================================================
+
+  1. A Calculator class with add() overloaded 4 ways
+     (int,int / double,double / three ints / int array).
+
+  2. Force "reference to sum is ambiguous" on purpose, read the compiler
+     message, then fix it. Errors you caused yourself stick.
+
+  3. Prove the resolution order: write show(long), show(Integer) and
+     show(int...) in one class, call show(10), and PREDICT before you run.
+
+  4. Overload by changing only the ORDER of parameter types
+     -- show(int, String) and show(String, int) -- and call both.
+
+  5. Write a varargs sum(int... n) and call it with 0, 1 and 5 arguments.
+
+  6. Add constructor overloading to any class in your Constructor package
+     and chain the constructors with this(...).
+
+  7. Take any class where you wrote the same logic in two overloads and
+     refactor it so only one method holds the logic. Count the lines before
+     and after.
