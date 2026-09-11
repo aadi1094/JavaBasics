@@ -86,8 +86,6 @@ import java.sql.PreparedStatement;
 
 public class PaymentSystem {
 
-
-
     public static void main(String[] args) {
         Payment[] payments = { new CreditCardPayment(),
                 new UpiPayment(),
