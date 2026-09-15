@@ -1,0 +1,581 @@
+===============================================================================
+ENCAPSULATION IN JAVA
+package OOPS.Encapsulation
+===============================================================================
+
+The first pillar of OOP. You have already done Inheritance and Polymorphism.
+
+    CONTENTS
+        PART 1  : What it is, and why it exists
+        PART 2  : The rules  (how to encapsulate, in 2 steps)
+        PART 3  : The features  (what it gives you)
+        PART 4  : Access modifiers -- the full table
+        PART 5  : Getters and setters  (naming conventions)
+        PART 6  : The real payoff -- validation in the setter
+        PART 7  : Read-only, write-only, and immutable classes
+        PART 8  : this -- why setters need it
+        PART 9  : The trap -- getters/setters are NOT automatically encapsulation
+        PART 10 : Encapsulation vs Abstraction
+        PART 11 : Your own code -- before and after
+        PART 12 : Checklist
+        PART 13 : Traps and interview questions
+        PART 14 : Practice list -- what to code after reading this
+
+
+===============================================================================
+PART 1 : WHAT IT IS, AND WHY IT EXISTS
+===============================================================================
+
+DEFINITION
+
+    Encapsulation = wrapping the DATA and the METHODS that work on that data
+    into a single unit (a class), and HIDING the data from the outside world.
+
+    Also called DATA HIDING.
+
+    Capsule analogy: a medicine capsule holds several ingredients inside one
+    shell. You swallow the capsule. You never touch the powder directly.
+
+
+WHY IT EXISTS
+
+    Because a field that anybody can change is a field that WILL be changed
+    to something impossible.
+
+    Without encapsulation:
+
+        class BankAccount {
+            double balance;
+        }
+
+        account.balance = -50000;       // legal. Nothing stops this.
+        account.balance = 999999999;    // also legal. Free money.
+
+    The class has no way to defend itself. Any line in any file in the whole
+    program can put the object into a state that makes no sense.
+
+    With encapsulation:
+
+        class BankAccount {
+            private double balance;     // nobody outside can touch it
+
+            public void deposit(double amount) {
+                if (amount <= 0) {
+                    System.out.println("Deposit must be positive");
+                    return;
+                }
+                balance = balance + amount;
+            }
+        }
+
+        account.balance = -50000;       // COMPILE ERROR -- cannot be done
+        account.deposit(-50000);        // politely refused at runtime
+
+    Now there is exactly ONE door into that field, and the door has a guard.
+
+
+THE ONE-LINE REASON
+
+    Encapsulation gives the class CONTROL over its own data.
+    An object should never be able to be put into an invalid state from
+    outside.
+
+
+===============================================================================
+PART 2 : THE RULES  (how to encapsulate, in 2 steps)
+===============================================================================
+
+    STEP 1 : make every instance field  private
+
+    STEP 2 : provide public methods to read and write them, and put any
+             rules inside those methods
+
+        public class Student {
+
+            private String name;            // STEP 1
+            private int age;
+
+            public String getName() {       // STEP 2 -- reader (getter)
+                return name;
+            }
+
+            public void setName(String name) {   // STEP 2 -- writer (setter)
+                this.name = name;
+            }
+
+            public int getAge() {
+                return age;
+            }
+
+            public void setAge(int age) {
+                if (age > 0 && age < 120) {      // the rule lives HERE
+                    this.age = age;
+                } else {
+                    System.out.println("Invalid age");
+                }
+            }
+        }
+
+That is the entire mechanic. Two steps.
+
+    Fields   -> private   ALWAYS
+    Methods  -> public    when the outside world needs them
+
+Note: you do NOT have to provide both a getter and a setter. Provide only
+what the outside world genuinely needs. See PART 7.
+
+
+===============================================================================
+PART 3 : THE FEATURES  (what it gives you)
+===============================================================================
+
+    1. CONTROL -- every write goes through a method you wrote, so you can
+       validate, log, convert, or reject it.
+
+    2. FLEXIBILITY -- you can change how the data is stored internally
+       without breaking a single line of calling code.
+
+            private String fullName;          // today
+            private String first, last;       // tomorrow
+
+       getFullName() keeps working. Nobody outside notices.
+
+    3. SECURITY -- sensitive data can be write-only or hidden completely.
+
+    4. EASIER DEBUGGING -- if balance is wrong, there is ONE method that
+       could have changed it. Put a print there and you have found the bug.
+       With a public field, the culprit could be any of 10,000 lines.
+
+    5. REUSABILITY -- a class that protects itself can be handed to any
+       other programmer safely.
+
+    6. IT IS WHAT FRAMEWORKS EXPECT -- Spring, Hibernate and Jackson all
+       rely on the private-field + public-getter/setter pattern (the
+       "JavaBean" convention). You cannot skip this and use them.
+
+
+===============================================================================
+PART 4 : ACCESS MODIFIERS -- THE FULL TABLE
+===============================================================================
+
+                        Same     Same package    Subclass in     Anywhere
+                        class    (non-subclass)  another package
+    ------------------  -------  --------------  --------------  --------
+    private             YES      no              no              no
+    default (none)      YES      YES             no              no
+    protected           YES      YES             YES             no
+    public              YES      YES             YES             YES
+
+    Least permissive  ->  private < default < protected < public  ->  most
+
+KEY POINTS
+
+  * "default" is what you get when you write NO modifier at all. It is also
+    called package-private. Almost every field in your repo today is this.
+
+  * protected is the only one that crosses a package boundary, and only for
+    subclasses. It exists for inheritance.
+
+  * A top-level class can only be public or default -- never private or
+    protected.
+
+  * Fields should be private by default. Widen only when you have a reason.
+
+RULE OF THUMB
+
+        Fields        -> private
+        Helper methods-> private
+        API methods   -> public
+        For subclasses-> protected
+
+
+===============================================================================
+PART 5 : GETTERS AND SETTERS  (naming conventions)
+===============================================================================
+
+Follow these exactly. Frameworks and IDEs depend on the names.
+
+    GETTER (accessor)     public  <type>  getFieldName()      returns the value
+    SETTER (mutator)      public  void    setFieldName(value) changes it
+
+    BOOLEAN GETTER        public  boolean isFieldName()       note: is, not get
+
+        private boolean active;
+
+        public boolean isActive()  { return active; }
+        public void setActive(boolean active) { this.active = active; }
+
+RULES
+
+  * The field name follows get/set/is with the FIRST LETTER CAPITALISED.
+        private String firstName;  ->  getFirstName()  setFirstName()
+
+  * A getter takes NO parameters and RETURNS the type.
+  * A setter takes ONE parameter and returns void.
+  * Never make the getter print. It should RETURN. Let the caller decide
+    what to do with the value.
+
+        public void getBalance() { System.out.println(balance); }   // WRONG
+        public double getBalance() { return balance; }              // RIGHT
+
+  * IntelliJ can generate these for you:  Alt+Insert  ->  Getter and Setter.
+    Generate them, then go back and ADD THE VALIDATION by hand. The
+    generated ones have none -- see PART 9.
+
+
+===============================================================================
+PART 6 : THE REAL PAYOFF -- VALIDATION IN THE SETTER
+===============================================================================
+
+This is the part that matters. Everything else is plumbing.
+
+    public void setAge(int age) {
+        if (age <= 0 || age > 120) {
+            System.out.println("Invalid age: " + age);
+            return;                      // reject, leave the field unchanged
+        }
+        this.age = age;
+    }
+
+Now it is IMPOSSIBLE for a Student object to have age -5, no matter who
+writes the calling code, no matter how many files the program has.
+
+That guarantee is called a CLASS INVARIANT -- a statement that is always
+true about every object of the class. Encapsulation is how you enforce one.
+
+    "balance is never negative"
+    "age is between 1 and 120"
+    "name is never null or empty"
+
+Ask yourself for every class you write: what must ALWAYS be true here?
+Then make the setters enforce it.
+
+THREE WAYS TO REJECT BAD INPUT
+
+    1. print a message and return          <- fine for now, what you will do
+    2. return a boolean success flag       <- slightly better
+    3. throw an IllegalArgumentException   <- what real Java code does
+
+            if (age <= 0) {
+                throw new IllegalArgumentException("Age must be positive");
+            }
+
+    Option 3 is the professional answer, but you have not done exceptions
+    yet. Use option 1 today and come back here after you learn exceptions.
+
+
+===============================================================================
+PART 7 : READ-ONLY, WRITE-ONLY, AND IMMUTABLE CLASSES
+===============================================================================
+
+You choose what to expose. Getter and setter are independent decisions.
+
+  a) READ-ONLY field -- getter, NO setter
+
+        private final int accountNumber;      // set once in the constructor
+
+        public BankAccount(int accountNumber) {
+            this.accountNumber = accountNumber;
+        }
+        public int getAccountNumber() { return accountNumber; }
+                                              // no setter at all
+
+     An account number should never change after the account is created.
+     Leaving out the setter makes that physically impossible.
+
+  b) WRITE-ONLY field -- setter, NO getter
+
+        private String password;
+
+        public void setPassword(String password) { this.password = password; }
+                                              // no getter -- never readable
+
+  c) IMMUTABLE CLASS -- nothing can change after construction
+
+        public final class Point {            // final: cannot be subclassed
+            private final int x;              // final: assigned once
+            private final int y;
+
+            public Point(int x, int y) {
+                this.x = x;
+                this.y = y;
+            }
+            public int getX() { return x; }
+            public int getY() { return y; }
+                                              // NO setters anywhere
+        }
+
+     Recipe: private final fields + values set in the constructor + no
+     setters + the class marked final.
+
+     String is the most famous immutable class in Java. That is why
+     s.toUpperCase() RETURNS a new String instead of changing s.
+
+  d) RECORDS (Java 16+, and you are on Java 21)
+
+        public record Point(int x, int y) { }
+
+     One line. The compiler generates the private final fields, the
+     constructor, the accessors, equals(), hashCode() and toString().
+     This is the modern way to write an immutable data carrier.
+
+     Note: record accessors are named x() and y(), NOT getX() and getY().
+
+     Learn the long form in (c) FIRST so you understand what the record is
+     doing for you.
+
+
+===============================================================================
+PART 8 : this -- WHY SETTERS NEED IT
+===============================================================================
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+Both are called name. The parameter SHADOWS (hides) the field.
+
+    name        -> the parameter (the local one, closest in scope)
+    this.name   -> the field belonging to this object
+
+Leave out this and you get a silent bug:
+
+    public void setName(String name) {
+        name = name;            // assigns the parameter to itself.
+    }                           // The field is never touched. No error.
+
+The compiler will not warn you. The field stays null forever.
+
+You already met this in the Constructor package -- same keyword, same reason.
+Some IDEs flag "self-assignment", but never rely on that.
+
+
+===============================================================================
+PART 9 : THE TRAP -- GETTERS/SETTERS ARE NOT AUTOMATICALLY ENCAPSULATION
+===============================================================================
+
+READ THIS TWICE. It is the most commonly misunderstood point in the topic.
+
+    private double balance;
+
+    public double getBalance()            { return balance; }
+    public void   setBalance(double b)    { this.balance = b; }
+
+This looks encapsulated. It is NOT. Anybody can still write
+
+        account.setBalance(-50000);
+
+You have achieved nothing except three extra lines. A setter with no rules
+is a public field with extra steps.
+
+ENCAPSULATION IS ABOUT CONTROL, NOT ABOUT CEREMONY.
+
+Two better options:
+
+    1. Put a real rule in the setter.
+
+            public void setBalance(double b) {
+                if (b < 0) { System.out.println("Cannot be negative"); return; }
+                this.balance = b;
+            }
+
+    2. Better -- do not expose a setter at all. Expose the OPERATION.
+
+            public void deposit(double amount)  { ... }
+            public void withdraw(double amount) { ... }
+
+       Real bank accounts have no "set balance" operation. They have deposit
+       and withdraw. Model the BEHAVIOUR, not the field.
+
+       This is the difference between a class and a data bag.
+
+ONE MORE LEAK -- returning a mutable object
+
+        private int[] marks;
+        public int[] getMarks() { return marks; }     // LEAK
+
+        int[] m = student.getMarks();
+        m[0] = 999;                   // just changed the student's marks
+
+    The getter handed out the actual array. Return a COPY instead:
+
+        public int[] getMarks() { return marks.clone(); }
+
+    This is called a DEFENSIVE COPY. It matters for arrays, Lists, Dates
+    and any other mutable object. Not for String or int -- those are safe.
+
+
+===============================================================================
+PART 10 : ENCAPSULATION vs ABSTRACTION
+===============================================================================
+
+The classic interview confusion. They are related but different.
+
+                        ENCAPSULATION              ABSTRACTION
+    ------------------  -------------------------  ------------------------
+    Hides               DATA (the state)           IMPLEMENTATION (the how)
+    Question answered   "who may touch this?"      "what does this do?"
+    Achieved using      private + getters/setters  abstract class, interface
+    Level               Implementation level       Design level
+    Purpose             Protect the data           Hide the complexity
+    Example             private balance            interface Payment
+
+ONE SENTENCE
+
+    Encapsulation hides the DATA.
+    Abstraction hides the COMPLEXITY.
+
+A car analogy:
+
+    Abstraction   = the steering wheel. You turn it to go left. You do not
+                    need to know about the rack and pinion.
+    Encapsulation = the engine is behind a locked bonnet so you cannot pour
+                    sand into it.
+
+They work together: encapsulation is often HOW you implement abstraction.
+
+
+===============================================================================
+PART 11 : YOUR OWN CODE -- BEFORE AND AFTER
+===============================================================================
+
+BEFORE -- OOPS/Inheritance/HierarchicalInheritance/BankAccountSystem/
+         BankAccount.java as it stands today:
+
+        public class BankAccount {
+            int accNumber = 12345;
+            String accHolder = "Aditya Chawale";
+            double salary = 10000;
+            int depositdepositAmount = 1000;
+            int withdrwaAmount = 2000;
+        }
+
+Four problems:
+
+    1. No modifier means DEFAULT access. Any class in the package can write
+           acc.salary = -99999;
+       and nothing stops it.
+
+    2. The deposit and withdrawal amounts are FIELDS with fixed values.
+       They should be PARAMETERS:  deposit(double amount).
+       As written, the object can only ever deposit exactly 1000.
+
+    3. withdraw() never checks whether there is enough money. The balance
+       can go negative.
+
+    4. "salary" is the wrong name for an account balance, and
+       depositdepositAmount / withdrwaAmount are typos. Naming is part of
+       encapsulation: the outside world reads your method names.
+
+AFTER -- the shape to aim for:
+
+        public class BankAccount {
+            private final int accNumber;      // read-only after construction
+            private String accHolder;
+            private double balance;           // renamed, and private
+
+            public BankAccount(int accNumber, String accHolder,
+                               double openingBalance) { ... }
+
+            public void deposit(double amount)  { ...validate... }
+            public void withdraw(double amount) { ...validate... }
+            public double getBalance()          { return balance; }
+        }
+
+The same applies to Constructor/Practice/Employee.java, where id, name and
+salary are all default access.
+
+
+===============================================================================
+PART 12 : CHECKLIST -- IS THIS CLASS PROPERLY ENCAPSULATED?
+===============================================================================
+
+    [ ] Every instance field is private
+    [ ] No field is public (unless it is a static final constant)
+    [ ] Getters return the value; they do not print it
+    [ ] Getters and setters follow get/set/is + CapitalisedFieldName
+    [ ] Every setter that has a rule ENFORCES that rule
+    [ ] Fields that must never change are final with no setter
+    [ ] Fields nobody outside needs have NO getter at all
+    [ ] Behaviour is exposed as operations (deposit) not raw setters
+        (setBalance) where that makes sense
+    [ ] Getters that return arrays/Lists return a defensive copy
+    [ ] this.field = field is used in setters, not field = field
+    [ ] You can state the class invariant in one sentence
+
+
+===============================================================================
+PART 13 : TRAPS AND INTERVIEW QUESTIONS
+===============================================================================
+
+  1. Is a class with public getters and setters for every field
+     encapsulated?
+        Not meaningfully. If setX has no rules it is a public field with
+        extra steps. Encapsulation is about CONTROL.
+
+  2. What is the difference between encapsulation and abstraction?
+        Encapsulation hides DATA using access modifiers. Abstraction hides
+        COMPLEXITY using abstract classes and interfaces. See PART 10.
+
+  3. Can a class be 100% encapsulated?
+        Yes -- when every field is private. It does not matter whether
+        getters exist.
+
+  4. What happens if you write  name = name;  in a setter?
+        The parameter is assigned to itself. The field is never set. No
+        compile error, no warning. Silent bug. Use this.name = name.
+
+  5. Which is the default access modifier?
+        Writing nothing gives "default" / package-private -- visible to the
+        whole package. It is NOT the same as public and NOT the same as
+        private.
+
+  6. Can we make a class private?
+        A top-level class, no. A nested class, yes.
+
+  7. Why is String immutable?
+        Security, thread safety, and String pool caching. It is the standard
+        example of an immutable, fully encapsulated class.
+
+  8. How do you make a class immutable?
+        private final fields, values set in the constructor, no setters,
+        class marked final, and defensive copies of any mutable field.
+
+  9. Does returning a List from a getter break encapsulation?
+        Yes -- the caller gets the real list and can modify it. Return a
+        copy, or Collections.unmodifiableList(...).
+
+ 10. Where do getters and setters actually get used in real projects?
+        Everywhere. Spring, Hibernate and Jackson all read and write objects
+        through them. This convention is called a JavaBean.
+
+
+===============================================================================
+PART 14 : PRACTICE LIST -- WHAT TO CODE AFTER READING THIS
+===============================================================================
+
+  1. Run EncapsulationDemo.java in this package. Read both classes, then
+     uncomment the line that is marked -- watch it fail to compile.
+
+  2. Do BankAccount.java in this package (the practice problem).
+
+  3. Write a Student class: private name, age, marks. Reject an empty name,
+     an age outside 1-120, and marks outside 0-100.
+
+  4. Make one field read-only (final + getter, no setter) and prove you
+     cannot change it after construction.
+
+  5. Make one field write-only (setter, no getter) -- a password.
+
+  6. Write an immutable Point class using the PART 7(c) recipe. Then
+     rewrite it as a one-line record and compare.
+
+  7. Prove the defensive-copy leak: give a class an int[] field with a
+     plain getter, modify the returned array from main, print the field,
+     and watch it change. Then fix it with .clone().
+
+  8. Go back to Constructor/Practice/Employee.java and encapsulate it
+     properly. Nothing in main should break.
+
+  9. Go back to BankAccountSystem/BankAccount.java and do the full BEFORE
+     -> AFTER rewrite from PART 11.
