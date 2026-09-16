@@ -1,0 +1,361 @@
+===============================================================================
+ABSTRACT CLASSES IN JAVA
+package OOPS.Abstraction.AbstractClass
+===============================================================================
+
+Read OOPS/Abstraction/Notes first.
+
+
+    CONTENTS
+        PART 1 : The two keywords
+        PART 2 : What an abstract class CAN and CANNOT have
+        PART 3 : Constructors -- the question everyone gets wrong
+        PART 4 : The rules for subclasses
+        PART 5 : The illegal combinations (and why each one is illegal)
+        PART 6 : Abstract class with NO abstract methods
+        PART 7 : How it changes what you already wrote
+        PART 8 : Traps and interview questions
+        PART 9 : Practice list
+
+
+===============================================================================
+PART 1 : THE TWO KEYWORDS
+===============================================================================
+
+`abstract` is used in exactly two places.
+
+ON A METHOD -- declare it, do not define it
+
+        abstract void start();          // signature, semicolon, NO braces
+
+    Not this:
+
+        abstract void start() { }       // ERROR -- abstract methods cannot
+                                        // have a body, not even an empty one
+
+ON A CLASS -- mark it as incomplete, so it cannot be instantiated
+
+        abstract class Vehicle { ... }
+
+THE LINK BETWEEN THEM
+
+        A class with even ONE abstract method MUST be declared abstract.
+        An abstract class is NOT required to have any abstract methods.
+
+    The arrow only points one way. Remember it as:
+
+        abstract method  ==>  abstract class      (forced)
+        abstract class   ==>  abstract method     (NOT forced)
+
+
+===============================================================================
+PART 2 : WHAT AN ABSTRACT CLASS CAN AND CANNOT HAVE
+===============================================================================
+
+    CAN HAVE                                CANNOT
+    ------------------------------------    ---------------------------------
+    abstract methods                        objects of itself (new Vehicle())
+    concrete methods (with bodies)          to be final     (abstract + final)
+    instance fields (any modifier)          abstract constructors
+    static fields and constants             abstract static methods
+    a constructor (see PART 3)              abstract private methods
+    static methods                          abstract final methods
+    final methods
+    private methods
+    initializer blocks (static + instance)
+    a main() method -- and it will run
+    to implement an interface WITHOUT
+      writing its methods
+    to extend another class
+    to be extended by another abstract class
+
+That fourth item on the right -- "to implement an interface without writing
+its methods" -- is genuinely useful. The unimplemented interface methods
+simply stay abstract and the first concrete subclass has to write them.
+
+        interface Payable { double pay(); }
+
+        abstract class Employee implements Payable {
+            // no pay() here at all. Legal, because Employee is abstract.
+        }
+
+        class Manager extends Employee {
+            public double pay() { return 90000; }    // NOW it is required
+        }
+
+
+===============================================================================
+PART 3 : CONSTRUCTORS -- THE QUESTION EVERYONE GETS WRONG
+===============================================================================
+
+    Q: Can an abstract class have a constructor?
+    A: YES.
+
+    Q: But you can never create an object of it, so who calls it?
+    A: The SUBCLASS does, through super(...), every single time a subclass
+       object is created.
+
+This is not a special rule. It is the constructor chaining you already did
+in Constructor/ConstructorChaining. Nothing new is happening.
+
+        abstract class Vehicle {
+            private final String model;
+
+            Vehicle(String model) {              // runs on every subclass
+                this.model = model;              // object creation
+                System.out.println("Vehicle constructor");
+            }
+        }
+
+        class Car extends Vehicle {
+            Car(String model) {
+                super(model);                    // this line calls it
+                System.out.println("Car constructor");
+            }
+        }
+
+        new Car("Swift");        ->   Vehicle constructor
+                                      Car constructor
+
+WHY IT MATTERS -- this is the reason to pick an abstract class over an
+interface. The constructor lets the parent initialise SHARED STATE and
+enforce a class invariant for every subclass at once:
+
+        Vehicle(String model) {
+            if (model == null || model.isEmpty()) {
+                System.out.println("Model cannot be empty");
+                model = "UNKNOWN";
+            }
+            this.model = model;
+        }
+
+    Now no subclass, present or future, can exist with an empty model.
+    An interface cannot do this. It has no fields and no constructor.
+
+THE ORDER TO REMEMBER
+
+        1. parent's static blocks     (once, when the class loads)
+        2. child's static blocks      (once)
+        3. parent's instance blocks + field initialisers
+        4. parent's constructor body
+        5. child's instance blocks + field initialisers
+        6. child's constructor body
+
+    You proved this yourself in BlocksInJava/StaticBlockTest.java. Being
+    abstract changes nothing about it.
+
+
+===============================================================================
+PART 4 : THE RULES FOR SUBCLASSES
+===============================================================================
+
+When class B extends abstract class A, B has exactly two legal choices:
+
+    CHOICE 1 -- implement EVERY abstract method inherited from A.
+                B is then concrete and can be instantiated.
+
+    CHOICE 2 -- implement some or none of them, and declare B abstract too.
+                The unimplemented methods pass down to B's own subclasses.
+
+        abstract class Shape {
+            abstract double area();
+            abstract double perimeter();
+        }
+
+        abstract class TwoDShape extends Shape {
+            double perimeter() { return 0; }    // handles one...
+                                                // ...leaves area() abstract
+        }                                       // so it MUST stay abstract
+
+        class Square extends TwoDShape {
+            double area() { return 4; }         // now the last one is done
+        }                                       // Square can be instantiated
+
+There is no third option. "Forgetting" is choice 2 without saying so, and
+the compiler rejects it with:
+
+        Bike is not abstract and does not override abstract method start()
+
+ALWAYS WRITE @Override on the implementing method. It is not required by
+the compiler here, but it catches the classic typo -- misspell the name and
+you have silently added a NEW method while leaving the abstract one
+unimplemented. @Override turns that into an instant error.
+
+
+===============================================================================
+PART 5 : THE ILLEGAL COMBINATIONS
+===============================================================================
+
+Four combinations are compile errors. Learn the REASON, not the list --
+every one of them is the same reason: abstract means "a subclass must
+override this", and each keyword below makes overriding impossible.
+
+    abstract + final        final means "cannot be overridden / extended".
+                            abstract means "MUST be overridden".
+                            A direct contradiction.
+
+    abstract + private      private members are not inherited, so a subclass
+                            cannot see the method, let alone override it.
+
+    abstract + static       static methods belong to the CLASS, not to an
+                            object. They are not overridden -- they are
+                            HIDDEN, resolved from the reference type at
+                            compile time. (Polymorphism/Notes, mistake 2.)
+                            There is no dynamic dispatch to make abstract
+                            mean anything.
+
+    abstract constructor    a constructor is never inherited and never
+                            overridden, so abstract has no meaning on it.
+
+Not an error, but worth knowing:
+
+    abstract class + private constructor    legal, but then only nested
+                                            classes can extend it.
+    abstract class with main()              legal, and main() runs normally.
+                                            main is static, so no object of
+                                            the abstract class is needed.
+
+
+===============================================================================
+PART 6 : ABSTRACT CLASS WITH NO ABSTRACT METHODS
+===============================================================================
+
+Legal, and occasionally exactly right.
+
+        abstract class Config {
+            void load()  { ... }
+            void save()  { ... }
+        }
+
+You are saying: "this class is complete and usable code, but it is a base
+class -- it makes no sense on its own, so do not instantiate it directly."
+
+You have already met this pattern in the JDK without noticing:
+
+        java.util.Calendar        abstract, obtained via Calendar.getInstance()
+        java.io.InputStream       abstract, has concrete read() methods
+        java.lang.Number          abstract, parent of Integer, Double, Long
+        java.util.AbstractList    abstract, the shared engine behind ArrayList
+
+    Number is worth looking at properly. Every wrapper class you used in
+    WrapperClasses/Main.java -- Integer, Double, Float, Long -- extends the
+    abstract class Number. That is why this line compiles:
+
+        Number n = 42;            // autoboxes to Integer, upcasts to Number
+
+    and why  List<Number>  can hold an Integer and a Double at once.
+
+
+===============================================================================
+PART 7 : HOW IT CHANGES WHAT YOU ALREADY WROTE
+===============================================================================
+
+Go through your repo with this one question: "is the parent class a THING,
+or a CONCEPT?" If it is a concept, it should be abstract.
+
+    OOPS/Polymorphism/ShapesExample.java
+        ShapesExample.area() prints "This is the shape class example".
+        A shape with no area. Make the class abstract and delete that body.
+        -> you will do this in ShapeArea.java
+
+    OOPS/Inheritance/MultiLevelInheritance/LivingThingAnimalDog
+        A LivingThing that is not any particular living thing cannot exist.
+
+    OOPS/Inheritance/MultiLevelInheritance/ProductElectronicLaptop
+        "Product" is a category. Nobody buys a Product.
+
+    OOPS/Inheritance/HierarchicalInheritance/EmployeeSystem
+        Employee is arguably real -- but calculateSalary() certainly is not
+        definable at that level. Make the CLASS concrete or abstract as you
+        judge, but that METHOD should be abstract.
+
+    OOPS/Polymorphism/MethodOverriding/PaymentSystem.java
+        Payment.pay() prints "Processing Payment of <amount>" -- a
+        placeholder. But careful: WalletPayment calls super.pay(amount) and
+        DEPENDS on that body existing. So here the right answer is to keep
+        pay() concrete. Not every placeholder should become abstract.
+
+    The deciding question for a METHOD is:
+        "can I write a body here that every subclass would genuinely want?"
+            yes -> concrete
+            no  -> abstract
+
+
+===============================================================================
+PART 8 : TRAPS AND INTERVIEW QUESTIONS
+===============================================================================
+
+  1. Can an abstract class have a constructor?
+        Yes. It runs via super() when a subclass object is created, and it
+        initialises the shared fields. See PART 3.
+
+  2. Can an abstract class have zero abstract methods?
+        Yes. It just means "do not instantiate me directly". See PART 6.
+
+  3. Can an abstract method be static / final / private?
+        No to all three. Each makes overriding impossible, and abstract
+        demands overriding. See PART 5.
+
+  4. Can an abstract class be final?
+        No. Direct contradiction -- final blocks extension, abstract
+        requires it.
+
+  5. Can an abstract class extend a concrete class?
+        Yes. Every class already extends Object, which is concrete.
+
+  6. Can an abstract class have a main method and be run?
+        Yes. main is static, so no instance is needed.
+
+  7. If a subclass does not implement all abstract methods, what happens?
+        Compile error, unless the subclass is itself declared abstract.
+
+  8. Can you have a reference of an abstract type?
+        Yes, and you will constantly:   Shape s = new Circle();
+        You cannot create the OBJECT. The REFERENCE is fine. This is the
+        single most common confusion in the topic.
+
+  9. Are abstract classes useless now that interfaces have default methods?
+        No. An interface still cannot have instance fields, a constructor,
+        or non-public members. When you need shared STATE, you need an
+        abstract class.
+
+ 10. What is the difference between an abstract class and a concrete class
+     with methods that just throw an exception?
+        The abstract version fails at COMPILE time; the other fails at
+        RUNTIME, on a customer's machine. Prefer compile-time.
+
+ 11. Can an abstract class implement an interface without implementing its
+     methods?
+        Yes. They remain abstract and the first concrete subclass must
+        supply them. See PART 2.
+
+
+===============================================================================
+PART 9 : PRACTICE LIST
+===============================================================================
+
+  1. Run AbstractClassDemo.java in this package. Then uncomment each of the
+     lines marked ERROR, one at a time, and read what the compiler says.
+
+  2. Do ShapeArea.java (PRACTICE 1) -- rewrite ShapesExample properly.
+
+  3. Do GameCharacter.java (PRACTICE 2) -- abstract class with shared state
+     and a constructor.
+
+  4. Write an abstract class with a constructor that prints a line, plus a
+     static block and an instance block. Create a subclass object and
+     predict the print order BEFORE you run it. Check against PART 3.
+
+  5. Prove PART 4 choice 2: make a three-level chain where the middle class
+     implements only one of two abstract methods and must stay abstract.
+
+  6. Try every illegal combination from PART 5 and collect the four error
+     messages. Recognising them by sight is worth more than memorising the
+     rules.
+
+  7. Go back to LivingThingAnimalDog and make LivingThing abstract. Find
+     out what breaks in main() and fix it.
+
+  8. Open the JDK source of java.lang.Number (Ctrl+click Integer in
+     IntelliJ, then click Number). Confirm it is abstract and see which
+     methods are abstract and which are not.

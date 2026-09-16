@@ -1,0 +1,390 @@
+===============================================================================
+ABSTRACTION IN JAVA -- MASTER NOTES
+package OOPS.Abstraction
+===============================================================================
+
+The FOURTH and final pillar of OOP. You have already done Inheritance,
+Polymorphism and Encapsulation. This one ties all three together.
+
+Read this file FIRST, then AbstractClass/Notes, then Interfaces/Notes.
+
+
+    CONTENTS
+        PART 1 : What it is, and why it exists
+        PART 2 : The two tools -- abstract class and interface
+        PART 3 : Your own code -- the bug abstraction fixes
+        PART 4 : Where abstraction sits among the four pillars
+        PART 5 : Abstraction vs Encapsulation (the interview favourite)
+        PART 6 : How to decide -- abstract class or interface?
+        PART 7 : The vocabulary you will hear
+        PART 8 : Why this topic unlocks Collections
+        PART 9 : Reading order and files in this package
+        PART 10: Test yourself before you start coding
+
+
+===============================================================================
+PART 1 : WHAT IT IS, AND WHY IT EXISTS
+===============================================================================
+
+DEFINITION
+
+    Abstraction = showing WHAT an object does, and hiding HOW it does it.
+
+    You expose the method SIGNATURE and hide the method BODY.
+
+    Car analogy: you press the brake pedal. That is the WHAT. Whether the
+    car uses disc brakes, drum brakes or regenerative braking is the HOW,
+    and you neither know nor care. If the manufacturer swaps the HOW next
+    year, your driving does not change.
+
+
+WHY IT EXISTS
+
+    Because some classes exist only to define a CONTRACT, and have no
+    sensible behaviour of their own.
+
+    Think about "Shape". Every shape has an area. But what is the area of
+    a plain Shape? There is no answer. A Shape that is not a circle, not a
+    square, not a rectangle is not a thing that exists.
+
+    Java lets you say exactly that:
+
+        abstract class Shape {
+            abstract double area();      // every shape HAS one...
+        }                                // ...but I refuse to say what it is
+
+    Two things now become true, enforced by the compiler:
+
+        1. new Shape()  is a COMPILE ERROR. The meaningless object cannot
+           be created at all.
+
+        2. Any class that extends Shape is FORCED to write area(), or it
+           will not compile.
+
+    That second point is the real power. An abstract method is a promise
+    that the compiler collects for you.
+
+
+THE ONE-LINE REASON
+
+    Abstraction lets you program against a CONTRACT instead of against a
+    CLASS -- so you can change the implementation without touching the
+    calling code.
+
+
+===============================================================================
+PART 2 : THE TWO TOOLS
+===============================================================================
+
+Java gives you two ways to achieve abstraction. You need both.
+
+    ABSTRACT CLASS      partial abstraction
+                        some methods have bodies, some do not
+                        "IS-A, and here is some shared code to help you"
+
+    INTERFACE           (was) full abstraction
+                        a pure contract -- names only, no shared state
+                        "CAN-DO -- whoever signs this must provide these"
+
+Quick shape of each:
+
+    abstract class Animal {              interface Flyable {
+        String name;                         void fly();
+        Animal(String name) {            }
+            this.name = name;
+        }
+        void sleep() {                   class Bird extends Animal
+            System.out.println("zzz");         implements Flyable {
+        }                                    public void fly() { ... }
+        abstract void sound();               void sound() { ... }
+    }                                    }
+
+Note that last class: Bird EXTENDS one abstract class and IMPLEMENTS an
+interface at the same time. That is the normal, professional shape of real
+Java code, and it is where this topic is heading.
+
+You cannot extend two classes. You can implement as many interfaces as you
+like. That single fact drives most of the "which should I use" decisions.
+
+
+===============================================================================
+PART 3 : YOUR OWN CODE -- THE BUG ABSTRACTION FIXES
+===============================================================================
+
+Open OOPS/Polymorphism/ShapesExample.java. It currently starts like this:
+
+        public class ShapesExample {
+            void area(){
+                System.out.println("This is the shape class example");
+            }
+        }
+
+and main() contains:
+
+        ShapesExample shape = new ShapesExample();
+        shape.area();          // prints "This is the shape class example"
+
+Look hard at those two lines. You created a Shape that is not any shape,
+and asked it for its area, and it answered with a sentence that is not an
+area. Nothing is wrong syntactically. Everything is wrong in meaning.
+
+That placeholder body exists for exactly one reason: Java forced you to
+write SOMETHING so the children had a method to override. You did not want
+that body. You were working around the language.
+
+`abstract` is the feature that removes the workaround:
+
+        abstract class ShapesExample {
+            abstract void area();        // no body. None is needed.
+        }
+
+Now:
+
+        new ShapesExample();     -> COMPILE ERROR, and that is correct
+        class Cone extends ShapesExample { }
+                                 -> COMPILE ERROR, Cone forgot area()
+
+The nonsense object became impossible, and forgetting to override became
+impossible. You will rewrite this file properly in AbstractClass/ShapeArea.java.
+
+Same story in OOPS/Inheritance -- LivingThingAnimalDog, VehicleCarElectricCar,
+ProductElectronicLaptop. In every one of them the top class is a concept,
+not a thing. Every one of them should be abstract.
+
+
+===============================================================================
+PART 4 : WHERE ABSTRACTION SITS AMONG THE FOUR PILLARS
+===============================================================================
+
+        1. Encapsulation -- hide the DATA                    [done]
+        2. Inheritance   -- reuse behaviour through IS-A     [done]
+        3. Polymorphism  -- one name, many forms             [done]
+        4. Abstraction   -- hide the IMPLEMENTATION          [you are here]
+
+Abstraction is not a fourth independent idea. It is what the other three
+were building towards:
+
+        Inheritance   gives you the IS-A link.
+        Polymorphism  lets a parent reference run a child's method.
+        Abstraction   removes the parent's method body, so the child MUST
+                      supply one and the parent can never be instantiated.
+
+Read your own Polymorphism/Notes, PART 6. It ends with:
+
+        "abstraction is what makes polymorphism genuinely useful in real
+         code. So after this topic, go straight to abstract classes and
+         interfaces -- that is where these two ideas join up."
+
+This is that file. The three conditions for runtime polymorphism you
+memorised -- inheritance, overriding, upcasting -- are all still required.
+Abstraction just makes conditions 1 and 2 compulsory instead of optional.
+
+
+===============================================================================
+PART 5 : ABSTRACTION vs ENCAPSULATION
+===============================================================================
+
+You already have this table in Encapsulation/Notes PART 10. It is repeated
+here from the other side, because this is asked in almost every interview.
+
+                        ABSTRACTION                 ENCAPSULATION
+    ------------------  --------------------------  ------------------------
+    Hides               IMPLEMENTATION (the how)    DATA (the state)
+    Question answered   "what does this do?"        "who may touch this?"
+    Achieved using      abstract class, interface   private + getters/setters
+    Level               Design level                Implementation level
+    Purpose             Hide the complexity         Protect the data
+    Focus               The OUTSIDE view of a class The INSIDE of a class
+    Example             interface Payment           private double balance
+
+ONE SENTENCE
+
+    Abstraction hides the COMPLEXITY.
+    Encapsulation hides the DATA.
+
+They are not rivals. Encapsulation is usually HOW you implement abstraction:
+you hide the fields (encapsulation) behind methods that describe intent
+(abstraction).
+
+A trap to watch for: people say "abstraction hides implementation, so a
+private method is abstraction". No. A private method is encapsulation.
+Abstraction is about the TYPE you program against, not about visibility.
+
+
+===============================================================================
+PART 6 : HOW TO DECIDE -- ABSTRACT CLASS OR INTERFACE?
+===============================================================================
+
+The full comparison table lives in Interfaces/Notes PART 8. Here is the
+decision itself, which is what you actually need at the keyboard.
+
+ASK THESE IN ORDER
+
+    1. Is the relationship IS-A or CAN-DO?
+
+           Dog IS-A Animal            -> abstract class Animal
+           Dog CAN-DO Swimmable       -> interface Swimmable
+
+       IS-A describes what the thing fundamentally is. CAN-DO describes an
+       ability that could belong to unrelated things. A Duck, a Submarine
+       and a Fish are all Swimmable and share no ancestor at all.
+
+    2. Do the implementations need to SHARE STATE or SHARED CODE?
+
+           yes -> abstract class (it can have fields and a constructor)
+           no  -> interface (it cannot have instance fields at all)
+
+    3. Do the implementations already have a parent, or might they need
+       an unrelated one later?
+
+           yes -> interface. A class gets only ONE superclass, ever, and
+                  spending it is a permanent decision.
+
+    4. Is this a capability you want to bolt onto many unrelated types?
+
+           yes -> interface. Comparable, Runnable and Serializable are all
+                  exactly this.
+
+RULE OF THUMB
+
+    Default to an INTERFACE. Reach for an ABSTRACT CLASS only when you have
+    real shared state or shared code to give away.
+
+    This is the modern advice and it is the opposite of what older tutorials
+    say, because before Java 8 an interface could not hold any code at all.
+
+THEY ARE NOT EXCLUSIVE -- the professional pattern uses both together:
+
+        interface  Payable              <- the contract, for anyone
+        abstract class Employee         <- shared fields + shared code
+              implements Payable
+        class Manager extends Employee  <- the concrete thing
+        class Intern  extends Employee
+
+    You will build exactly this in AbstractClass/EmployeePayroll.java.
+
+
+===============================================================================
+PART 7 : THE VOCABULARY YOU WILL HEAR
+===============================================================================
+
+    ABSTRACT METHOD       a method with a signature and no body, ending in
+                          a semicolon:   abstract void draw();
+
+    CONCRETE METHOD       an ordinary method, with a body
+
+    CONCRETE CLASS        an ordinary class -- one you CAN instantiate
+
+    CONTRACT              the set of methods a type promises to provide.
+                          An interface IS a contract.
+
+    IMPLEMENTATION        the code that fulfils the contract
+
+    PROGRAM TO AN         declare variables using the general type:
+    INTERFACE                 List<String> names = new ArrayList<>();
+                          not      ArrayList<String> names = new ArrayList<>();
+                          The single most repeated piece of Java advice.
+
+    LOOSE COUPLING        the result of the above -- calling code depends on
+                          the contract, so the implementation can be swapped
+
+    PARTIAL / FULL        abstract class = partial abstraction
+    ABSTRACTION           interface = full abstraction  (see the trap below)
+
+    TRAP: "an interface gives 100% abstraction" was true until Java 8. Since
+    default methods exist, an interface can contain real code, so it is no
+    longer 100% abstract. Say "it was designed as a pure contract, and since
+    Java 8 it may also carry default methods". That answer shows you know
+    which Java you are writing. You are on Java 21.
+
+
+===============================================================================
+PART 8 : WHY THIS TOPIC UNLOCKS COLLECTIONS
+===============================================================================
+
+This is the practical reason to do abstraction before Collections rather
+than after.
+
+The Collections Framework is a set of INTERFACES with several
+implementations each:
+
+        Collection            (interface)
+            List              (interface)     ArrayList, LinkedList, Vector
+            Set               (interface)     HashSet, LinkedHashSet, TreeSet
+            Queue             (interface)     ArrayDeque, PriorityQueue
+        Map                   (interface)     HashMap, LinkedHashMap, TreeMap
+
+So the standard line everyone writes:
+
+        List<String> names = new ArrayList<>();
+
+is a parent-type reference holding a child object -- upcasting, from
+Polymorphism/Notes PART 4 -- where the parent type is an INTERFACE. If you
+had not done abstraction, that line would be unreadable.
+
+And it is written that way on purpose. Swapping to
+
+        List<String> names = new LinkedList<>();
+
+changes the performance characteristics and breaks NOTHING, because every
+other line in the program only ever used the List contract. That is PART 7's
+"program to an interface", and it is the whole reason Collections is shaped
+this way.
+
+You will also meet these interfaces immediately:
+
+        Comparable<T>     one method, compareTo()  -- gives a class its
+                          natural sort order, used by Collections.sort()
+        Comparator<T>     one method, compare()    -- an alternative sort
+                          order, supplied from outside
+        Iterable<T>       one method, iterator()   -- this is what makes
+                          the for-each loop work on any collection
+
+Each of those is a functional interface (Interfaces/Notes PART 7), which is
+also the doorway to lambdas and streams later.
+
+
+===============================================================================
+PART 9 : READING ORDER AND FILES IN THIS PACKAGE
+===============================================================================
+
+    Notes                              <- you are reading this (overview)
+    IntroToAbstraction.java            <- both tools side by side, runnable
+
+    AbstractClass/Notes                <- rules, constructors, traps
+    AbstractClass/AbstractClassDemo.java   <- worked example, runnable
+    AbstractClass/ShapeArea.java           <- PRACTICE 1 (fix ShapesExample)
+    AbstractClass/GameCharacter.java       <- PRACTICE 2 (shared state)
+
+    Interfaces/Notes                   <- rules, default/static, diamond
+    Interfaces/InterfaceDemo.java          <- worked example, runnable
+    Interfaces/MultiFunctionMachine.java   <- PRACTICE 3 (many interfaces)
+    Interfaces/HotelBookingApp.java        <- PRACTICE 4 (both together)
+
+Do them in that order. Practice 4 is the capstone -- it uses an abstract
+class and an interface in the same program, which is what real code looks
+like.
+
+
+===============================================================================
+PART 10 : TEST YOURSELF BEFORE YOU START CODING
+===============================================================================
+
+Come back to these AFTER the two sub-Notes. Answer out loud, no looking.
+
+    1. What is the difference between abstraction and encapsulation?
+    2. Can you create an object of an abstract class? What about an
+       interface?
+    3. Can an abstract class have a constructor? If it can never be
+       instantiated, who calls it and when?
+    4. Can an abstract class have zero abstract methods? Is that useful?
+    5. Can an abstract method be private? static? final? Why not, in each
+       case?
+    6. Why can a class implement many interfaces but extend only one class?
+    7. Two interfaces define the same default method and one class
+       implements both. What happens, and how do you fix it?
+    8. What is a functional interface, and name three from the JDK.
+    9. Why is  List<String> x = new ArrayList<>();  preferred over
+       ArrayList<String> x = new ArrayList<>();
+   10. IS-A or CAN-DO: Dog/Animal, Dog/Swimmable, Circle/Shape,
+       Circle/Drawable, Manager/Employee, Manager/Payable.
