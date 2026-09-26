@@ -268,24 +268,17 @@ class HomeScanner implements Scannable {
 
 class OfficeAllInOne implements Printable, Scannable, Faxable {
 
-    // TODO @Override public void print(String doc, int copies)
 
     @Override
     public void print(String doc, int copies) {
         System.out.println("[AllInOne] printing "+copies+" of "+doc);
     }
 
-
-    // TODO @Override public void scan(String doc)
-
     @Override
     public void scan(String doc) {
         System.out.println("[AllInOne] scanning "+doc+ " at 600dpi");
     }
 
-
-    // TODO @Override public void fax(String doc, String number)
-    //      (fax should call confirm(number) at the end)
 
     @Override
     public void fax(String doc, String number) {
