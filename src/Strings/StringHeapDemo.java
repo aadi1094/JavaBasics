@@ -5,9 +5,9 @@ public class StringHeapDemo {
     public static void main(String[] args) throws InterruptedException {
 
         // A unique word, so it's easy to find in the heap dump
-        String s1 = "HeapDemoWord";               // 1 object in the SCP
-        String s2 = new String("HeapDemoWord");   // 1 new object in the heap (pool one reused)
-        String s3 = new String("HeapDemoWord");   // 1 more object in the heap
+        String s1 = "HeapDemoWord";                // 1 object: SCP
+        String s2 = new String("HeapDemoWord2");   // 2 objects: SCP + heap
+        String s3 = new String("HeapDemoWord3");   // 2 objects: SCP + heap
 
         System.out.println("s1 == s2 : " + (s1 == s2));   // false
         System.out.println("s2 == s3 : " + (s2 == s3));   // false
