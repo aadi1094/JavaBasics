@@ -3,12 +3,11 @@ package CodingPractice;
 public class ReverseString {
     static void main(String[] args) {
         String s = "Hello";
-        String reversedString = "";
-
-        for (int i = s.length()-1; i >=0; i--) {
-            reversedString+=s.charAt(i);
+        StringBuilder sb = new StringBuilder();
+        for (int i = s.length() - 1; i >= 0; i--) {
+            sb.append(s.charAt(i));
         }
+        System.out.println(sb.toString());
 
-        System.out.println("Reverse String is : "+reversedString);
     }
 }
